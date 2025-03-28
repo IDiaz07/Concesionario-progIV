@@ -1,0 +1,24 @@
+Toyota;Corolla;2020;20000.00
+Ford;Fiesta;2019;15000.00
+Chevrolet;Cruze;2021;22000.00
+Honda;Civic;2018;18000.00
+BMW;X5;2022;55000.00
+Audi;A4;2020;35000.00
+Mercedes-Benz;C-Class;2021;40000.00
+Volkswagen;Golf;2019;21000.00
+Mazda;3;2020;23000.00
+Hyundai;Elantra;2018;17000.00
+Nissan;Altima;2022;25000.00
+Kia;Sportage;2021;28000.00
+Subaru;Outback;2019;24000.00
+Chrysler;Pacifica;2020;30000.00
+Dodge;Charger;2021;35000.00
+Ford;Mustang;2018;32000.00
+Chevrolet;Tahoe;2021;60000.00
+GMC;Sierra;2022;45000.00
+Toyota;Camry;2020;27000.00
+Honda;Accord;2019;22000.00
+BMW;3 Series;2021;45000.00
+Audi;Q7;2021;65000.00
+Tesla;Model 3;2022;55000.00
+Jeep;Wrangler;2019;38000.00

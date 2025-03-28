@@ -1,33 +1,44 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "concesionario.h"
+#include "file.h"
 #include "vehiculos.h"
-#include "base_datos.h"
+
+void mostrarMenu() {
+    printf("\nMenu:\n");
+    printf("1. Aniadir vehiculo\n");
+    printf("2. Mostrar vehiculos\n");
+    printf("3. Exportar a archivo\n");
+    printf("4. Salir\n");
+}
+
+int seleccionarOpcion() {
+    int opcion;
+    printf("Seleccione una opcion: ");
+    scanf("%d", &opcion);
+    return opcion;
+}
 
 int main() {
-    sqlite3* db;
-    
-    // Inicializar la base de datos
-    inicializarBaseDeDatos(&db);
+    FILE* archivo;
+
+    inicializarArchivo(&archivo);
 
     int opcion;
     do {
-        // Mostrar el menú principal
         mostrarMenu();
 
-        // Obtener la opción seleccionada por el usuario
         opcion = seleccionarOpcion();
 
-        // Ejecutar la opción seleccionada
         switch (opcion) {
             case 1:
-                anadirVehiculo(db);
+                anadirVehiculo(archivo);
                 break;
             case 2:
-                mostrarVehiculos(db);
+                mostrarVehiculos(archivo);
                 break;
             case 3:
-                exportarAFichero(db, "vehiculos.csv");
+                exportarAFichero(archivo, "vehiculos.csv");
                 break;
             case 4:
                 printf("Saliendo del programa...\n");
@@ -37,7 +48,6 @@ int main() {
         }
     } while (opcion != 4);
 
-    // Cerrar la base de datos antes de finalizar el programa
-    sqlite3_close(db);
+    fclose(archivo);
     return 0;
 }
