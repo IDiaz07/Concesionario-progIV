@@ -14,6 +14,16 @@ void mostrarMenu() {
     printf("4. Salir\n");
 }
 
+void MostrarFiltro(){
+        printf("1. Filtrar por marca\n");
+        printf("2. Filtrar por dinero\n");
+        printf("3. Filtrar por modelo\n");
+        printf("4. Salir\n");
+        printf("Seleccione una opcion: ");
+       
+
+}
+
 int seleccionarOpcion() {
     int opcion;
     printf("Seleccione una opcion: ");
@@ -31,6 +41,14 @@ void mostrarMenuPrincipal() {
 int seleccionarOpcionPrincipal() {
     int opcion;
     printf("Seleccione una opcion: ");
+    scanf("%d", &opcion);
+    return opcion;
+}
+
+
+int seleccionarOpcionFiltro(){
+    int opcion;
+    
     scanf("%d", &opcion);
     return opcion;
 }
@@ -53,7 +71,9 @@ int main() {
     FILE* archivo;
     inicializarArchivo(&archivo);
 
+    int opcionFiltro;
     int opcion;
+    
     do {
         mostrarMenuPrincipal();
         opcion = seleccionarOpcionPrincipal();
@@ -76,6 +96,20 @@ int main() {
                             break;
                         case 2:
                             mostrarVehiculos(archivo);
+                            MostrarFiltro();
+
+                             opcionFiltro = seleccionarOpcionFiltro();
+
+                            switch (opcionFiltro)
+                            {
+                            case 1:
+                            FiltrarMarca(archivo);
+                                break;
+                            
+                            default:
+                            printf("Opción no válida.\n");
+                                break;
+                            }
                             break;
                         case 3:
                             exportarAFichero(archivo, "vehiculos.csv");

@@ -25,6 +25,26 @@ void mostrarVehiculos(FILE* archivo) {
     }
 }
 
+void FiltrarMarca(FILE* archivo){
+    char filtro[50];
+    char linea[256];
+    char marca[50];
+     printf("Introduce la marca: ");
+    scanf("%s", filtro);
+    rewind(archivo);
+    while (fgets(linea, sizeof(linea), archivo) != NULL) {
+        
+        sscanf(linea, "%49s[^;]", marca);
+
+        
+        if (strcmp(marca, filtro) == 0) {
+            printf("%s", linea);  
+    
+
+    }
+}
+}
+
 void exportarAFichero(FILE* archivo, const char* nombreFichero) {
     FILE* archivoCSV = fopen(nombreFichero, "w");
     if (archivoCSV == NULL) {
