@@ -1,0 +1,3 @@
+Juan Perez;Gerente;50000
+Maria Lopez;Vendedora;30000
+Carlos Gomez;Mecanico;28000

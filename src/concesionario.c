@@ -79,6 +79,12 @@ int main() {
         return 1;
     }
 
+    rc = crearTablaPlantilla(db);
+    if (rc != SQLITE_OK) {
+        sqlite3_close(db);
+        return 1;
+    }
+
 
     int opcionConcesionario;
     int opcionDeustoMotors;
@@ -121,13 +127,14 @@ int main() {
                                     anadirVehiculo(db,archivo);
                                     break;
                                 case 4:
-                                    // Implementacion Plantilla
+                                    cargarPlantillaDesdeArchivo(db, "plantilla.txt");
+                                    mostrarPlantilla(db);
                                     break;
                                 case 5:
                                     printf("Saliendo del programa...\n");
                                     break;
                                 default:
-                                    printf("Opción no válida.\n");
+                                    printf("Opcion no valida.\n");
                             }
                         } while (opcionDeustoMotors != 5);
                     } else {

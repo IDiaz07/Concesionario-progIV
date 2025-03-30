@@ -2,6 +2,7 @@
 #include "sqlite3.h"
 #include <string.h>
 #include "database.h"
+#include <locale.h>
 
 int abrirDB(sqlite3 **db) {
     int rc = sqlite3_open("usuarios.db", db);
@@ -48,6 +49,7 @@ int crearTablaVehiculos(sqlite3 *db) {
     }
     return SQLITE_OK;
 }
+
 int registrarVehiculo(sqlite3 *db, char *marca, char *modelo, int anio, int precio) {
     sqlite3_stmt *stmt;
     const char *sql = "INSERT INTO vehiculos (marca, modelo, anio, precio) VALUES (?, ?, ?, ?)";
@@ -126,8 +128,6 @@ int registrarVenta(sqlite3 *db,int id_usuario, int id_vehiculo, const char *fech
 
 }
 
-
-
 int registrarUsuario(sqlite3 *db, const char *nombre_usuario, const char *contrasena, const char *email) {
     sqlite3_stmt *stmt;
     const char *sql = "INSERT INTO usuarios (nombre_usuario, contrasena, email) VALUES (?, ?, ?);";
@@ -176,3 +176,60 @@ int verificarUsuario(sqlite3 *db, const char *nombre_usuario, const char *contra
     return SQLITE_ERROR; // Usuario o contraseña incorrectos
 }
 
+int crearTablaPlantilla(sqlite3 *db) {
+    const char *sql = "CREATE TABLE IF NOT EXISTS plantilla ("
+                      "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                      "nombre TEXT NOT NULL, "
+                      "cargo TEXT NOT NULL, "
+                      "salario REAL NOT NULL);";
+
+    char *errMsg;
+    int rc = sqlite3_exec(db, sql, 0, 0, &errMsg);
+    if (rc != SQLITE_OK) {
+        printf("Error al crear la tabla plantilla: %s\n", errMsg);
+        sqlite3_free(errMsg);
+        return rc;
+    }
+    return SQLITE_OK;
+}
+
+int mostrarPlantilla(sqlite3 *db) {
+    setlocale(LC_NUMERIC, ""); // Habilitar separadores de miles
+
+    sqlite3_stmt *stmt;
+    const char *sql = "SELECT nombre, cargo, salario FROM plantilla;";
+
+    // Preparar consulta
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        printf("Error al preparar la consulta: %s\n", sqlite3_errmsg(db));
+        return rc;
+    }
+
+    printf("\n--- Plantilla del Concesionario ---\n");
+    while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+        const char *nombre = (const char *)sqlite3_column_text(stmt, 0);
+        const char *cargo = (const char *)sqlite3_column_text(stmt, 1);
+        double salario = sqlite3_column_double(stmt, 2);
+
+        // Verificar si salario tiene un valor válido
+        if (salario == 0) {
+            printf("⚠ Advertencia: salario es 0 o no se ha leído correctamente.\n");
+        }
+
+        printf("Nombre: %s | Cargo: %s | Salario: %.2f\n",
+               nombre ? nombre : "Desconocido",
+               cargo ? cargo : "Desconocido",
+               salario);
+    }
+
+    // Verificar si hubo errores en la ejecución
+    if (rc != SQLITE_DONE) {
+        printf("Error al recuperar datos: %s\n", sqlite3_errmsg(db));
+    }
+
+    // Liberar memoria
+    sqlite3_finalize(stmt);
+
+    return SQLITE_OK;
+}
