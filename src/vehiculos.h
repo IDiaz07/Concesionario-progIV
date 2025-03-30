@@ -11,6 +11,10 @@ typedef struct {
     float precio;
 } Vehiculo;
 
+
 void anadirVehiculo(sqlite3 *db, FILE* archivo);
+
+
+void filtrarVehiculos(FILE* archivo);
 
 #endif

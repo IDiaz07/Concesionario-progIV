@@ -139,9 +139,20 @@ int main() {
 
 
                             switch (opcionConcesionario) {
-                                case 1:
-                                    mostrarVehiculos(archivo);
-                                    break;
+                                case 1:{
+                                int subopcion;
+                                    printf("\n1. Ver todos los vehiculos\n");
+                                    printf("2. Busqueda avanzada\n");
+                                    printf("Elige una opcion: ");
+                                    scanf("%d", &subopcion);
+                                    if (subopcion == 1) {
+                                        mostrarVehiculos(archivo);  
+                                    } else if (subopcion == 2) {
+                                        filtrarVehiculos(archivo);  
+                                    } else {
+                                        printf("Opcion no valida.\n");
+                                    }
+                                    break;}
                                 case 2:
                                     MenuServicios();
                                     break;
@@ -155,7 +166,7 @@ int main() {
                                     printf("Saliendo del programa...\n");
                                     break;
                                 default:
-                                    printf("Opción no válida.\n");
+                                    printf("Opcion no valida.\n");
                             }
                         } while (opcionConcesionario != 5);
                     }
@@ -168,7 +179,7 @@ int main() {
                 printf("Saliendo del programa...\n");
                 break;
             default:
-                printf("Opción no válida.\n");
+                printf("Opcion no valida.\n");
                 break;
         }
 

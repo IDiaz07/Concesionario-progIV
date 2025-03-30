@@ -24,3 +24,27 @@ void anadirVehiculo(sqlite3  *db, FILE *archivo) {
     crearTablaVehiculos(db);
     registrarVehiculo(db, nuevoVehiculo.marca, nuevoVehiculo.modelo, nuevoVehiculo.anio, nuevoVehiculo.precio);
 }
+void filtrarVehiculos(FILE* archivo) {
+    char criterio[50];
+    char valor[50];
+    char linea[256];
+    Vehiculo vehiculo;
+
+    printf("\nFiltrar vehculos por: marca, modelo, anio: ");
+    scanf("%s", criterio);
+    printf("Ingrese el valor a buscar: ");
+    scanf("%s", valor);
+
+    rewind(archivo);
+    printf("\nVehiculos encontrados:\n");
+    while (fgets(linea, sizeof(linea), archivo) != NULL) {
+        sscanf(linea, "%[^;];%[^;];%d;%f", vehiculo.marca, vehiculo.modelo, &vehiculo.anio, &vehiculo.precio);
+
+        if ((strcmp(criterio, "marca") == 0 && strcmp(vehiculo.marca, valor) == 0) ||
+            (strcmp(criterio, "modelo") == 0 && strcmp(vehiculo.modelo, valor) == 0) ||
+            (strcmp(criterio, "anio") == 0 && atoi(valor) == vehiculo.anio) ||
+            (strcmp(criterio, "precio") == 0 && atof(valor) == vehiculo.precio)) {
+            printf("%s %s %d %.2f\n", vehiculo.marca, vehiculo.modelo, vehiculo.anio, vehiculo.precio);
+        }
+    }
+}
