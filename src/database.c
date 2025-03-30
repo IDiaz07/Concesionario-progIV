@@ -36,8 +36,8 @@ int crearTablaVehiculos(sqlite3 *db) {
                       "marca TEXT NOT NULL, "
                       "modelo TEXT NOT NULL, "
                       "anio INTEGER NOT NULL, "
-                      "precio REAL NOT NULL, "
-                      "disponible INTEGER NOT NULL DEFAULT 1);";
+                      "precio REAL NOT NULL "
+                     ");";
 
     char *errMsg;
     int rc = sqlite3_exec(db, sql, 0, 0, &errMsg);
@@ -50,7 +50,7 @@ int crearTablaVehiculos(sqlite3 *db) {
 }
 int registrarVehiculo(sqlite3 *db, char *marca, char *modelo, int anio, int precio) {
     sqlite3_stmt *stmt;
-    const char *sql = "INSERT INTO vehiculos (marca, modelo, anio, precio, disponible) VALUES (?, ?, ?, ?, ?)";
+    const char *sql = "INSERT INTO vehiculos (marca, modelo, anio, precio) VALUES (?, ?, ?, ?)";
 
     int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
     if (rc != SQLITE_OK) {
@@ -62,8 +62,9 @@ int registrarVehiculo(sqlite3 *db, char *marca, char *modelo, int anio, int prec
     sqlite3_bind_text(stmt, 2, modelo, -1, SQLITE_STATIC);
     sqlite3_bind_int(stmt, 3, anio);  
     sqlite3_bind_int(stmt, 4, precio);
-    sqlite3_bind_int(stmt, 5, 1); 
+   
 
+    
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
         printf("Error al registrar vehículo: %s\n", sqlite3_errmsg(db));
@@ -72,7 +73,10 @@ int registrarVehiculo(sqlite3 *db, char *marca, char *modelo, int anio, int prec
     }
 
     sqlite3_finalize(stmt);
+
+     printf("Vehiculo registrado con existo");
     return SQLITE_OK;
+   
 }
 
 int crearTablaVentas(sqlite3 *db) {

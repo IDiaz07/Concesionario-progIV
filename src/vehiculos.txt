@@ -22,3 +22,7 @@ BMW;3 Series;2021;45000.00
 Audi;Q7;2021;65000.00
 Tesla;Model 3;2022;55000.00
 Jeep;Wrangler;2019;38000.00Toyota;Corolla;7471052;0.00
+Ford;Focus;1997;12000.00
+for;foces;2000;2000.00
+Ford;Focus;2000;12000.00
+Subaru;Impreza;2006;15000.00

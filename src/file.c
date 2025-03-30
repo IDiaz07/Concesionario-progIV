@@ -3,11 +3,9 @@
 #include <string.h>
 #include "file.h"
 #include "vehiculos.h"
+#include "database.h"
 
-void guardarVehiculo(FILE* archivo, Vehiculo* vehiculo) {
-    fprintf(archivo, "%s;%s;%d;%.2f\n", vehiculo->marca, vehiculo->modelo, vehiculo->anio, vehiculo->precio);
-    fflush(archivo); 
-}
+
 
 void inicializarArchivo(FILE** archivo) {
     *archivo = fopen("vehiculos.txt", "a+");
@@ -15,6 +13,17 @@ void inicializarArchivo(FILE** archivo) {
         printf("No se pudo abrir el archivo.\n");
         exit(1);
     }
+}
+
+
+void guardarVehiculo(FILE *archivo, Vehiculo v) {
+    if (archivo == NULL) {
+        printf("Error: No se puede abrir el archivo.\n");
+        return;
+    }
+
+    fprintf(archivo, "%s;%s;%d;%.2f\n", v.marca, v.modelo, v.anio, v.precio);
+    fflush(archivo); 
 }
 
 void mostrarVehiculos(FILE* archivo) {
@@ -38,12 +47,51 @@ void FiltrarMarca(FILE* archivo){
 
         
         if (strcmp(marca, filtro) == 0) {
-            printf("%s", linea);  
+            printf("%s \n", linea);  
     
 
     }
 }
 }
+
+
+
+void cargarVehiculosDesdeArchivo(sqlite3 *db, const char *nombreArchivo) {
+    FILE *archivo = fopen(nombreArchivo, "r");
+    if (!archivo) {
+        printf("Error al abrir el archivo.\n");
+        return;
+    }
+
+    char linea[256];
+    while (fgets(linea, sizeof(linea), archivo)) {
+        Vehiculo v;
+        char anio[10], precio[10];
+
+        
+        char *split = strtok(linea, ";");
+        if (split) strcpy(v.marca, split);
+
+        split = strtok(NULL, ";");
+        if (split) strcpy(v.modelo, split);
+
+        split = strtok(NULL, ";");
+        if (split) strcpy(anio, split);
+        v.anio = atoi(anio); 
+
+        split = strtok(NULL, ";");
+        if (split) strcpy(precio, split);
+        v.precio = atof(precio); 
+
+        
+        registrarVehiculo(db, v.marca,v.modelo,v.anio,v.precio);
+    }
+
+   
+
+    fclose(archivo);
+}
+
 
 void exportarAFichero(FILE* archivo, const char* nombreFichero) {
     FILE* archivoCSV = fopen(nombreFichero, "w");
