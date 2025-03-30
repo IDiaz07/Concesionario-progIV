@@ -11,5 +11,5 @@ typedef struct {
 } Vehiculo;
 
 void anadirVehiculo(FILE* archivo);
-
+void filtrarVehiculos(FILE* archivo);
 #endif
