@@ -39,5 +39,5 @@ void exportarAFichero(FILE* archivo, const char* nombreFichero) {
     }
 
     fclose(archivoCSV);
-    printf("Vehículos exportados a %s.\n", nombreFichero);
+    printf("Vehiculos exportados a %s.\n", nombreFichero);
 }

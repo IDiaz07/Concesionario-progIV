@@ -26,7 +26,7 @@ void registrarUsuarioMenu(sqlite3 *db) {
     }
 }
 
-void iniciarSesionMenu(sqlite3 *db) {
+int iniciarSesionMenu(sqlite3 *db, char *nombreUsuarioAutenticado) {
     char nombre_usuario[50];
     char contrasena[50];
 
@@ -39,7 +39,12 @@ void iniciarSesionMenu(sqlite3 *db) {
     int rc = verificarUsuario(db, nombre_usuario, contrasena);
     if (rc == SQLITE_OK) {
         printf("Inicio de sesion exitoso.\n");
+        strcpy(nombreUsuarioAutenticado, nombre_usuario);  // Copiar el nombre de usuario autenticado
+        return 1;  // Retorna 1 si el inicio de sesión es exitoso
     } else {
         printf("Nombre de usuario o contrasenia incorrectos.\n");
+        return 0;  // Retorna 0 si el inicio de sesión falla
     }
 }
+
+

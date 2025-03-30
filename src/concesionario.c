@@ -1,17 +1,38 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "concesionario.h"
 #include "file.h"
 #include "vehiculos.h"
 #include "database.h"
-#include "usuarios.h" 
+#include "usuarios.h"
+#include "servicios.h"
+
+char nombreUsuarioAutenticado[50] = "";
+
+void mostrarMenuDeustoMotors() {
+    printf("\nMenu Administrativo:\n");
+    printf("1. Enviar mensaje a los usuarios\n");
+    printf("2. Ver todos los vehiculos vendidos\n");
+    printf("3. Aniadir vehiculo\n");
+    printf("4. Mirar Plantilla\n");
+    printf("5. Salir\n");
+}
+
+int seleccionarOpcionDeustoMotors() {
+    int opcion;
+    printf("Seleccione una opcion: ");
+    scanf("%d", &opcion);
+    return opcion;
+}
 
 void mostrarMenu() {
-    printf("\nMenu:\n");
-    printf("1. Aniadir vehiculo\n");
-    printf("2. Mostrar vehiculos\n");
-    printf("3. Exportar a archivo\n");
-    printf("4. Salir\n");
+    printf("\nMenu DeustoMotors:\n");
+    printf("1. Mostrar Vehiculos\n");
+    printf("2. Servicios\n");
+    printf("3. Prueba de Manejo\n");
+    printf("4. Contacto\n");
+    printf("5. Salir\n");
 }
 
 int seleccionarOpcion() {
@@ -50,6 +71,7 @@ int main() {
     }
 
     int opcionConcesionario;
+    int opcionDeustoMotors;
     FILE* archivo;
     inicializarArchivo(&archivo);
 
@@ -64,29 +86,67 @@ int main() {
                 break;
             }
             case 2: {
-                iniciarSesionMenu(db);  // Usar la función definida en usuarios.c
-                do {
-                    mostrarMenu();
-                    opcionConcesionario = seleccionarOpcion();
+                if (iniciarSesionMenu(db, nombreUsuarioAutenticado)) {
+                    printf("Bienvenido, %s!\n", nombreUsuarioAutenticado);
 
+                    if (strcmp(nombreUsuarioAutenticado, "DeustoMotors") == 0) {
+                        // Menú especial para DeustoMotors
+                        int opcionDeustoMotors;
+                        do {
+                            mostrarMenuDeustoMotors();
+                            opcionDeustoMotors = seleccionarOpcionDeustoMotors();
 
-                    switch (opcionConcesionario) {
-                        case 1:
-                            anadirVehiculo(archivo);
-                            break;
-                        case 2:
-                            mostrarVehiculos(archivo);
-                            break;
-                        case 3:
-                            exportarAFichero(archivo, "vehiculos.csv");
-                            break;
-                        case 4:
-                            printf("Saliendo del programa...\n");
-                            break;
-                        default:
-                            printf("Opción no válida.\n");
+                            switch (opcionDeustoMotors) {
+                                case 1:
+                                    // Implementar enviarMensajeAUsuarios()
+                                    break;
+                                case 2:
+                                    // Implementar verVehiculosVendidos()
+                                    break;
+                                case 3:
+                                    anadirVehiculo(archivo);
+                                    break;
+                                case 4:
+                                    // Implementacion Plantilla
+                                    break;
+                                case 5:
+                                    printf("Saliendo del programa...\n");
+                                    break;
+                                default:
+                                    printf("Opción no válida.\n");
+                            }
+                        } while (opcionDeustoMotors != 5);
+                    } else {
+                        // Menú básico para otros usuarios
+                        int opcionConcesionario;
+                        do {
+                            mostrarMenu();
+                            opcionConcesionario = seleccionarOpcion();
+
+                            switch (opcionConcesionario) {
+                                case 1:
+                                    mostrarVehiculos(archivo);
+                                    break;
+                                case 2:
+                                    MenuServicios();
+                                    break;
+                                case 3:
+                                    // Implementar metodo
+                                    break;
+                                case 4:
+                                    // Implementar metodo
+                                    break;
+                                case 5:
+                                    printf("Saliendo del programa...\n");
+                                    break;
+                                default:
+                                    printf("Opción no válida.\n");
+                            }
+                        } while (opcionConcesionario != 5);
                     }
-                } while (opcionConcesionario != 4);
+                } else {
+                    printf("Inicio de sesion fallido. Por favor, intente nuevamente.\n");
+                }
                 break;
             }
             case 3:
@@ -94,6 +154,7 @@ int main() {
                 break;
             default:
                 printf("Opción no válida.\n");
+                break;
         }
 
     } while (opcion != 3);
