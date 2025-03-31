@@ -8,7 +8,7 @@ typedef struct {
     char marca[50];
     char modelo[50];
     int anio;
-    float precio;
+    int precio;
 } Vehiculo;
 
 

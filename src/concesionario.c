@@ -80,7 +80,16 @@ int main() {
         return 1;
     }
 
-    rc = crearTablaPlantilla(db);
+    printf("Intentando crear la tabla ventas...\n");
+rc = crearTablaVentas(db);
+if (rc != SQLITE_OK) {
+    printf("Error al crear la tabla ventas: %s\n", sqlite3_errmsg(db));
+    sqlite3_close(db);
+    return 1;
+}
+printf("Tabla ventas creada (o ya existía).\n");
+
+rc = crearTablaPlantilla(db);
     if (rc != SQLITE_OK) {
         sqlite3_close(db);
         return 1;
@@ -90,7 +99,7 @@ int main() {
     int opcionConcesionario;
     int opcionDeustoMotors;
     FILE* archivo;
-    cargarVehiculosDesdeArchivo(db,archivo);
+        cargarVehiculosDesdeArchivo(db,archivo);
     inicializarArchivo(&archivo);
 
 

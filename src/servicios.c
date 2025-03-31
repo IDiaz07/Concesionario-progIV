@@ -9,12 +9,12 @@ void mostrarMenuServicios() {
     printf("\nMenu Servicios:\n");
     printf("1. Mantenimiento y Reparacion\n");
     printf("2. Garantias\n");
-    printf("4.Comprar \n");
-    printf("5. Salir\n");
+    printf("3. Comprar \n");
+    printf("4. Salir\n");
 }
 
 // Seleccionar la opción en el menú
-void MenuServicios() {
+int MenuServicios() {
 
     FILE* archivo;
    

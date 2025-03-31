@@ -22,7 +22,7 @@ void guardarVehiculo(FILE *archivo, Vehiculo v) {
         return;
     }
 
-    fprintf(archivo, "%s;%s;%d;%.2f\n", v.marca, v.modelo, v.anio, v.precio);
+    fprintf(archivo, "%s;%s;%d;%d\n", v.marca, v.modelo, v.anio, v.precio);
     fflush(archivo); 
 }
 
@@ -81,7 +81,7 @@ void cargarVehiculosDesdeArchivo(sqlite3 *db, FILE *archivo) {
 
         split = strtok(NULL, ";");
         if (split) strcpy(precio, split);
-        v.precio = atof(precio); 
+        v.precio = atoi(precio); 
 
         
        

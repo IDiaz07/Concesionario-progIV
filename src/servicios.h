@@ -2,7 +2,7 @@
 #define SERVICIOS_H
 
 void mostrarMenuServicios();
-void MenuServicios();
+int MenuServicios();
 void mantenimientoYReparacion();
 void garantias();
 
