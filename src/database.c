@@ -5,7 +5,7 @@
 #include <locale.h> 
 
 int abrirDB(sqlite3 **db) {
-    int rc = sqlite3_open("usuarios.db", db);
+    int rc = sqlite3_open("db.db", db);
     if (rc) {
         printf("No se pudo abrir la base de datos: %s\n", sqlite3_errmsg(*db));
         return rc;
@@ -176,6 +176,7 @@ int verificarUsuario(sqlite3 *db, const char *nombre_usuario, const char *contra
     return SQLITE_ERROR; 
 }
 
+
 int buscarIDUsuario(sqlite3 *db,const char *nombre_usuario ){
 sqlite3_stmt *stmt;
 
@@ -254,8 +255,6 @@ int buscarIDVehiculo(sqlite3 *db, const char *marca, const char *modelo, int ani
     sqlite3_finalize(stmt);
     return id;
 }
-
-
 
 int crearTablaPlantilla(sqlite3 *db) {
     const char *sql = "CREATE TABLE IF NOT EXISTS plantilla ("
