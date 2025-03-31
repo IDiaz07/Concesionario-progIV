@@ -18,7 +18,7 @@ void anadirVehiculo(sqlite3  *db, FILE *archivo) {
     scanf("%d", &nuevoVehiculo.anio);
 
     printf("Introduce el precio del vehiculo: ");
-    scanf("%f", &nuevoVehiculo.precio);
+    scanf("%d", &nuevoVehiculo.precio);
 
     guardarVehiculo(archivo, nuevoVehiculo);
     crearTablaVehiculos(db);
@@ -37,24 +37,16 @@ void ComprarVehiculo(sqlite3 *db){
     printf("Introduce el anio del vehiculo: ");
     scanf("%d", &vehiculoComprado.anio);
 
-    printf("Introduce el precio del vehiculo: ");
-    scanf("%f", &vehiculoComprado.precio);
-
+    
  float precio =obtenerPrecioVehiculo(db,vehiculoComprado.marca,vehiculoComprado.modelo);
-    if (precio <= vehiculoComprado.precio)
-    {
+    
     printf("Introduzca su nombre de usuario: ");
     scanf("%s", nombreUsuario);
   int id_usuario=  buscarIDUsuario(db, nombreUsuario);
-  int id_vehiculo= buscarIDVehiculo(db,vehiculoComprado.marca,vehiculoComprado.modelo,vehiculoComprado.anio,vehiculoComprado.precio);
+  int id_vehiculo= buscarIDVehiculo(db,vehiculoComprado.marca,vehiculoComprado.modelo,vehiculoComprado.anio);
   registrarVenta(db,id_usuario,id_vehiculo,precio);
 
     
-    }
-    else
-    {
-        printf("No tiene dinero para comprar el vehiculo");
-    }
     
     
 

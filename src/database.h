@@ -17,6 +17,6 @@ int vehiculoExiste(sqlite3 *db, const char *marca, const char *modelo, int anio)
 int crearTablaPlantilla(sqlite3 *db);
 int mostrarPlantilla(sqlite3 *db);
 float obtenerPrecioVehiculo(sqlite3 *db, const char *marca, const char *modelo);
-int buscarIDVehiculo(sqlite3 *db,const char *marca, const char *modelo, int anio,int precio);
+int buscarIDVehiculo(sqlite3 *db,const char *marca, const char *modelo, int anio);
 int buscarIDUsuario(sqlite3 *db,const char *nombre_usuario );
 #endif

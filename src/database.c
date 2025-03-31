@@ -122,6 +122,7 @@ int registrarVenta(sqlite3 *db,int id_usuario, int id_vehiculo, int precio_final
     }
 
     sqlite3_finalize(stmt);
+    printf("Gracias por comprar un vehiculo!!!");
     return SQLITE_OK;
 
 }
@@ -229,10 +230,10 @@ int vehiculoExiste(sqlite3 *db, const char *marca, const char *modelo, int anio)
     sqlite3_finalize(stmt);
     return existe > 0; 
 }
-int buscarIDVehiculo(sqlite3 *db, const char *marca, const char *modelo, int anio, int precio) { 
+int buscarIDVehiculo(sqlite3 *db, const char *marca, const char *modelo, int anio) { 
     sqlite3_stmt *stmt;
     int id = -1;  
-    const char *sql = "SELECT id FROM vehiculos WHERE marca=? AND modelo=? AND anio=? AND precio=?";
+    const char *sql = "SELECT id FROM vehiculos WHERE marca=? AND modelo=? AND anio=?";
     int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
     
     if (rc != SQLITE_OK) {
@@ -243,15 +244,16 @@ int buscarIDVehiculo(sqlite3 *db, const char *marca, const char *modelo, int ani
     sqlite3_bind_text(stmt, 1, marca, -1, SQLITE_STATIC);
     sqlite3_bind_text(stmt, 2, modelo, -1, SQLITE_STATIC);
     sqlite3_bind_int(stmt, 3, anio);
-    sqlite3_bind_int(stmt, 4, precio);
+    
 
-    rc = sqlite3_step(stmt);
+   rc = sqlite3_step(stmt);
     if (rc == SQLITE_ROW) {
-        id = sqlite3_column_int(stmt, 0);  
-    } else {
+        id = sqlite3_column_int(stmt, 0);
+    } else if (rc == SQLITE_DONE) {
         printf("Vehículo no encontrado en la base de datos.\n");
+    } else {
+        printf("Error al ejecutar la consulta: %s\n", sqlite3_errmsg(db));
     }
-
     sqlite3_finalize(stmt);
     return id;
 }
