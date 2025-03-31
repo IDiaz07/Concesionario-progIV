@@ -121,6 +121,7 @@ int registrarVenta(sqlite3 *db,int id_usuario, int id_vehiculo, int precio_final
     }
 
     sqlite3_finalize(stmt);
+    printf("Gracias por comprar un vehiculo!!!");
     return SQLITE_OK;
 
 }
@@ -228,10 +229,10 @@ int vehiculoExiste(sqlite3 *db, const char *marca, const char *modelo, int anio)
     sqlite3_finalize(stmt);
     return existe > 0; 
 }
-int buscarIDVehiculo(sqlite3 *db, const char *marca, const char *modelo, int anio, int precio) { 
+int buscarIDVehiculo(sqlite3 *db, const char *marca, const char *modelo, int anio) { 
     sqlite3_stmt *stmt;
     int id = -1;  
-    const char *sql = "SELECT id FROM vehiculos WHERE marca=? AND modelo=? AND anio=? AND precio=?";
+    const char *sql = "SELECT id FROM vehiculos WHERE marca=? AND modelo=? AND anio=?";
     int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
     
     if (rc != SQLITE_OK) {
@@ -242,15 +243,16 @@ int buscarIDVehiculo(sqlite3 *db, const char *marca, const char *modelo, int ani
     sqlite3_bind_text(stmt, 1, marca, -1, SQLITE_STATIC);
     sqlite3_bind_text(stmt, 2, modelo, -1, SQLITE_STATIC);
     sqlite3_bind_int(stmt, 3, anio);
-    sqlite3_bind_int(stmt, 4, precio);
+    
 
-    rc = sqlite3_step(stmt);
+   rc = sqlite3_step(stmt);
     if (rc == SQLITE_ROW) {
-        id = sqlite3_column_int(stmt, 0);  
-    } else {
+        id = sqlite3_column_int(stmt, 0);
+    } else if (rc == SQLITE_DONE) {
         printf("Vehículo no encontrado en la base de datos.\n");
+    } else {
+        printf("Error al ejecutar la consulta: %s\n", sqlite3_errmsg(db));
     }
-
     sqlite3_finalize(stmt);
     return id;
 }
@@ -346,6 +348,7 @@ int crearTablaNotificaciones(sqlite3 *db) {
                         "id_usuario INTEGER,"
                         "mensaje TEXT,"
                         "leido INTEGER DEFAULT 0,"
+                        "fecha_hora TEXT,"
                         "FOREIGN KEY (id_usuario) REFERENCES usuarios(id)"
                         ");";
 
@@ -358,6 +361,7 @@ int crearTablaNotificaciones(sqlite3 *db) {
     }
     return SQLITE_OK;
 }
+
 
 int insertarNotificacion(sqlite3 *db, int id_usuario, const char *mensaje) {
     sqlite3_stmt *stmt;
@@ -393,7 +397,7 @@ void mostrarNotificaciones(sqlite3 *db, int idUsuario) {
 
     sqlite3_bind_int(stmt, 1, idUsuario);
 
-    printf("\n--- Notificaciones No Leídas ---\n");
+    printf("\n--- Notificaciones No Leidas ---\n");
     while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
         const char *mensaje = (const char *)sqlite3_column_text(stmt, 0);
         printf("Mensaje: %s\n", mensaje);
@@ -401,6 +405,53 @@ void mostrarNotificaciones(sqlite3 *db, int idUsuario) {
 
     if (rc != SQLITE_DONE) {
         printf("Error al recuperar las notificaciones: %s\n", sqlite3_errmsg(db));
+    }
+
+    sqlite3_finalize(stmt);
+}
+
+void eliminarTodasLasNotificaciones(sqlite3 *db, int id_usuario) {
+    char *errMsg = NULL;
+    const char *sql = "DELETE FROM notificaciones WHERE id_usuario = ?;";
+    
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    if (rc != SQLITE_OK) {
+        printf("Error al preparar la consulta: %s\n", sqlite3_errmsg(db));
+        return;
+    }
+    
+    sqlite3_bind_int(stmt, 1, id_usuario);
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        printf("Error al eliminar las notificaciones del usuario %d: %s\n", id_usuario, sqlite3_errmsg(db));
+    } else {
+        printf("Todas las notificaciones del usuario %d han sido eliminadas.\n", id_usuario);
+    }
+    
+    sqlite3_finalize(stmt);
+}
+
+void eliminarNotificacionPorID(sqlite3 *db, int id_usuario, int id_notificacion) {
+    char sql[200];
+    snprintf(sql, sizeof(sql), "DELETE FROM notificaciones WHERE id = ? AND id_usuario = ?;");
+    
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    if (rc != SQLITE_OK) {
+        printf("Error al preparar la consulta: %s\n", sqlite3_errmsg(db));
+        return;
+    }
+
+    sqlite3_bind_int(stmt, 1, id_notificacion);
+    sqlite3_bind_int(stmt, 2, id_usuario);
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        printf("Error al eliminar la notificación con ID %d para el usuario %d: %s\n", id_notificacion, id_usuario, sqlite3_errmsg(db));
+    } else {
+        printf("Notificacion con ID %d eliminada correctamente para el usuario %d.\n", id_notificacion, id_usuario);
     }
 
     sqlite3_finalize(stmt);

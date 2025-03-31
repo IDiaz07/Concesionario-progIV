@@ -3,17 +3,26 @@
 #include <string.h>
 #include "sqlite3.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+#include "sqlite3.h"
+
 void enviarMensajeAUsuarios(sqlite3 *db) {
     sqlite3_stmt *stmt;
     const char *sql = "SELECT id, nombre_usuario FROM usuarios;";
     char mensajeBase[500], mensajePersonalizado[600];
+    char sqlInsert[700];
+    time_t t;
+    struct tm *tm_info;
+    char fechaHora[20];
+    time(&t);
+    tm_info = localtime(&t);
+    strftime(fechaHora, sizeof(fechaHora), "%Y-%m-%d %H:%M:%S", tm_info);
 
-    //Usa {nombre} para personalizar con el nombre del usuario. Es decir se envian a todos el mensaje con su nombre personalizado.
-    // Hola {nombre}, buenas. Apareceria como --> Hola DeustoMotors, buenas.
-    printf("Ingrese el mensaje a enviar:\n");
-    
+    printf("Ingrese el mensaje a enviar (use {nombre} para personalizar con el nombre del usuario):\n");
     while (getchar() != '\n');
-
     fgets(mensajeBase, sizeof(mensajeBase), stdin);
     mensajeBase[strcspn(mensajeBase, "\n")] = 0;
 
@@ -26,33 +35,22 @@ void enviarMensajeAUsuarios(sqlite3 *db) {
         int id_usuario = sqlite3_column_int(stmt, 0);
         const char *nombre_usuario = (const char *)sqlite3_column_text(stmt, 1);
 
-        char *pos = strstr(mensajeBase, "{nombre}");
-        if (pos) {
-            strncpy(mensajePersonalizado, mensajeBase, pos - mensajeBase);
-            mensajePersonalizado[pos - mensajeBase] = '\0';
-            strcat(mensajePersonalizado, nombre_usuario);
-            strcat(mensajePersonalizado, pos + 8);
+        // Personalizar mensaje con el nombre del usuario
+        snprintf(mensajePersonalizado, sizeof(mensajePersonalizado), mensajeBase, nombre_usuario);
+
+        // Insertar en la base de datos con fecha y hora
+        snprintf(sqlInsert, sizeof(sqlInsert),
+                 "INSERT INTO notificaciones (id_usuario, mensaje, fecha_hora) VALUES (%d, '%s', '%s');",
+                 id_usuario, mensajePersonalizado, fechaHora);
+
+        char *errMsg;
+        int rc = sqlite3_exec(db, sqlInsert, 0, 0, &errMsg);
+        if (rc != SQLITE_OK) {
+            printf("Error al insertar mensaje para el usuario %s: %s\n", nombre_usuario, errMsg);
+            sqlite3_free(errMsg);
         } else {
-            strcpy(mensajePersonalizado, mensajeBase);
+            printf("Mensaje enviado a %s a las %s: %s\n", nombre_usuario, fechaHora, mensajePersonalizado);
         }
-
-        sqlite3_stmt *stmtInsert;
-        const char *sqlInsert = "INSERT INTO notificaciones (id_usuario, mensaje) VALUES (?, ?);";
-
-        if (sqlite3_prepare_v2(db, sqlInsert, -1, &stmtInsert, NULL) == SQLITE_OK) {
-            sqlite3_bind_int(stmtInsert, 1, id_usuario);
-            sqlite3_bind_text(stmtInsert, 2, mensajePersonalizado, -1, SQLITE_STATIC);
-
-            if (sqlite3_step(stmtInsert) == SQLITE_DONE) {
-                printf("Mensaje enviado a %s: %s\n", nombre_usuario, mensajePersonalizado);
-            } else {
-                printf("Error al insertar mensaje para el usuario %s: %s\n", nombre_usuario, sqlite3_errmsg(db));
-            }
-        } else {
-            printf("Error preparando la inserción: %s\n", sqlite3_errmsg(db));
-        }
-        
-        sqlite3_finalize(stmtInsert);
     }
 
     sqlite3_finalize(stmt);

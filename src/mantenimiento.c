@@ -2,13 +2,11 @@
 #include <string.h>
 #include "mantenimiento.h"
 
-// Implementación de la función para hacer una reserva de mantenimiento o reparación
 void mantenimientoYReparacion() {
     Cita cita;
 
     printf("Accion seleccionada: Mantenimiento y Reparacion\n");
 
-    // Paso 1: Elegir el tipo de mantenimiento o reparación
     printf("Selecciona el tipo de servicio:\n");
     printf("1. Cambio de aceite\n");
     printf("2. Reparacion de frenos\n");
@@ -35,13 +33,12 @@ void mantenimientoYReparacion() {
             break;
         case 5:
             printf("Saliendo del servicio de mantenimiento...\n");
-            return;  // Salir del método
+            return;
         default:
             printf("Opcion no valida.\n");
             return;
     }
 
-    // Paso 2: Elegir la fecha y hora para la cita
     printf("Introduce la fecha de la cita (formato: DD/MM/YYYY): ");
     scanf("%s", cita.fecha);
 

@@ -4,7 +4,6 @@
 
 #include <stdio.h>
 #include "vehiculos.h"
-#include <stdio.h>
 
 void inicializarArchivo(FILE** archivo);
 void guardarVehiculo(FILE* archivo, Vehiculo vehiculo);
