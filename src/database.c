@@ -173,9 +173,8 @@ int verificarUsuario(sqlite3 *db, const char *nombre_usuario, const char *contra
     }
 
     sqlite3_finalize(stmt);
-    return SQLITE_ERROR; // Usuario o contraseña incorrectos
+    return SQLITE_ERROR; 
 }
-
 int crearTablaPlantilla(sqlite3 *db) {
     const char *sql = "CREATE TABLE IF NOT EXISTS plantilla ("
                       "id INTEGER PRIMARY KEY AUTOINCREMENT, "
@@ -232,4 +231,30 @@ int mostrarPlantilla(sqlite3 *db) {
     sqlite3_finalize(stmt);
 
     return SQLITE_OK;
+}
+
+int vehiculoExiste(sqlite3 *db, const char *marca, const char *modelo, int anio) {
+    sqlite3_stmt *stmt;
+    const char *sql = "SELECT COUNT(*) FROM vehiculos WHERE marca = ? AND modelo = ? AND anio = ?";
+
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        printf("Error en la preparación de la sentencia: %s\n", sqlite3_errmsg(db));
+        return 0;
+    }
+
+    
+    sqlite3_bind_text(stmt, 1, marca, -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 2, modelo, -1, SQLITE_STATIC);
+    sqlite3_bind_int(stmt, 3, anio);
+
+    
+    rc = sqlite3_step(stmt);
+    int existe = 0;
+    if (rc == SQLITE_ROW) {
+        existe = sqlite3_column_int(stmt, 0);
+    }
+
+    sqlite3_finalize(stmt);
+    return existe > 0; 
 }

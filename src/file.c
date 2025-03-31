@@ -56,8 +56,8 @@ void FiltrarMarca(FILE* archivo){
 
 
 
-void cargarVehiculosDesdeArchivo(sqlite3 *db, const char *nombreArchivo) {
-    FILE *archivo = fopen(nombreArchivo, "r");
+void cargarVehiculosDesdeArchivo(sqlite3 *db, FILE *archivo) {
+    archivo = fopen("vehiculos.txt", "r");
     if (!archivo) {
         printf("Error al abrir el archivo.\n");
         return;
@@ -84,8 +84,16 @@ void cargarVehiculosDesdeArchivo(sqlite3 *db, const char *nombreArchivo) {
         v.precio = atof(precio); 
 
         
-        registrarVehiculo(db, v.marca,v.modelo,v.anio,v.precio);
+       
+
+        if (!vehiculoExiste(db, v.marca, v.modelo, v.anio)) {
+           
+            registrarVehiculo(db, v.marca, v.modelo, v.anio, v.precio);
+        } else {
+            printf("El vehiculo %s %s %d ya esta registrado.\n", v.marca, v.modelo, v.anio);
+        }
     }
+    
 
    
 
