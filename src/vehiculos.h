@@ -17,4 +17,5 @@ void anadirVehiculo(sqlite3 *db, FILE* archivo);
 
 void filtrarVehiculos(FILE* archivo);
 
+void ComprarVehiculo(sqlite3 *db);
 #endif
