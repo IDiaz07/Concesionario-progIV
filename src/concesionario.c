@@ -66,6 +66,7 @@ int seleccionarOpcionPrincipal() {
 
 int main() {
     sqlite3 *db;
+    
     int rc = abrirDB(&db);
     if (rc != SQLITE_OK) {
         printf("No se pudo abrir la base de datos.\n");
@@ -83,6 +84,7 @@ int main() {
     int opcionConcesionario;
     int opcionDeustoMotors;
     FILE* archivo;
+    cargarVehiculosDesdeArchivo(db,archivo);
     inicializarArchivo(&archivo);
 
 
