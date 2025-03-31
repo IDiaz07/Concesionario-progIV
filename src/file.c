@@ -117,3 +117,49 @@ void exportarAFichero(FILE* archivo, const char* nombreFichero) {
     fclose(archivoCSV);
     printf("Vehículos exportados a %s.\n", nombreFichero);
 }
+
+void cargarPlantillaDesdeArchivo(sqlite3 *db, const char *nombreArchivo) {
+    FILE *archivo = fopen(nombreArchivo, "r");
+    if (!archivo) {
+        printf("Error al abrir el archivo %s.\n", nombreArchivo);
+        return;
+    }
+
+    char linea[256];
+    while (fgets(linea, sizeof(linea), archivo)) {
+        char nombre[100], cargo[50], salarioStr[20];
+        double salario;
+
+        // Separar los datos con strtok
+        char *split = strtok(linea, ";\n");
+        if (split) strcpy(nombre, split);
+
+        split = strtok(NULL, ";\n");
+        if (split) strcpy(cargo, split);
+
+        split = strtok(NULL, ";\n");
+        if (split) {
+            strcpy(salarioStr, split);
+            salario = atof(salarioStr);  // Convertir salario a double
+        }
+
+        // Generar la consulta SQL
+        char sql[256];
+        snprintf(sql, sizeof(sql),
+                 "INSERT INTO plantilla (nombre, cargo, salario) VALUES ('%s', '%s', %.2f);",
+                 nombre, cargo, salario);
+
+        // Imprimir la consulta para depuración
+        printf("Ejecutando SQL: %s\n", sql);
+
+        // Ejecutar la consulta
+        char *errMsg = 0;
+        if (sqlite3_exec(db, sql, 0, 0, &errMsg) != SQLITE_OK) {
+            printf("Error al insertar datos: %s\n", errMsg);
+            sqlite3_free(errMsg);
+        }
+    }
+
+    fclose(archivo);
+    printf("Datos de plantilla cargados correctamente en la base de datos.\n");
+}
