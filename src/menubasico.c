@@ -3,6 +3,7 @@
 #include "menubasico.h"
 #include "file.h"
 #include "servicios.h"
+#include "contacto.h"
 
 void mostrarMenu() {
     printf("\nMenu DeustoMotors:\n");
@@ -53,7 +54,7 @@ void menuBasico(){
                 // Implementar metodo PruebaManejo();
                 break;
             case 4:
-                // Implementar metodo Contacto();
+                mostrarContacto();
                 break;
             case 5:
                 printf("Saliendo del programa...\n");
