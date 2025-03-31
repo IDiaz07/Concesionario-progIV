@@ -3,6 +3,8 @@
 #include "menubasico.h"
 #include "file.h"
 #include "servicios.h"
+#include "database.h"
+
 
 void mostrarMenu() {
     printf("\nMenu DeustoMotors:\n");
@@ -10,7 +12,8 @@ void mostrarMenu() {
     printf("2. Servicios\n");
     printf("3. Prueba de Manejo\n");
     printf("4. Contacto\n");
-    printf("5. Salir\n");
+    printf("5. Notificaciones 📩\n");
+    printf("6. Salir\n");
 }
 
 
@@ -21,7 +24,7 @@ int seleccionarOpcion() {
     return opcion;
 }
 
-void menuBasico(){
+void menuBasico(sqlite3 *db, int idUsuario){
     // Menú básico para otros usuarios
     FILE* archivo;
     inicializarArchivo(&archivo);
@@ -56,8 +59,11 @@ void menuBasico(){
                 // Implementar metodo Contacto();
                 break;
             case 5:
+                mostrarNotificaciones(db, idUsuario);
+                break;
+            case 6:
                 printf("Saliendo del programa...\n");
-            break;
+                break;
             default:
                 printf("Opcion no valida.\n");
         }

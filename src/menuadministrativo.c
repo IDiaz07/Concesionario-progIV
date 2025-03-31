@@ -4,6 +4,7 @@
 #include "concesionario.h"
 #include "servicios.h"
 #include "database.h"
+#include "mensajesusuarios.h"
 
 void mostrarMenuDeustoMotors() {
     printf("\nMenu Administrativo:\n");
@@ -34,7 +35,7 @@ void menuAdministrativo(sqlite3 *db) {
 
         switch (opcionDeustoMotors) {
         case 1:
-            // Implementar enviarMensajeAUsuarios()
+            enviarMensajeAUsuarios(db);
             break;
         case 2:
             // Implementar verVehiculosVendidos()

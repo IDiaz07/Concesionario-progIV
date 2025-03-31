@@ -46,16 +46,22 @@ int main() {
         return 1;
     }
 
+    rc = crearTablaNotificaciones(db);
+    if (rc != SQLITE_OK) {
+        printf("Error al crear la tabla de notificaciones.\n");
+        return rc;
+    }
+
     printf("Intentando crear la tabla ventas...\n");
-rc = crearTablaVentas(db);
-if (rc != SQLITE_OK) {
+    rc = crearTablaVentas(db);
+    if (rc != SQLITE_OK) {
     printf("Error al crear la tabla ventas: %s\n", sqlite3_errmsg(db));
     sqlite3_close(db);
     return 1;
-}
-printf("Tabla ventas creada (o ya existía).\n");
+    }
+    printf("Tabla ventas creada (o ya existía).\n");
 
-rc = crearTablaPlantilla(db);
+    rc = crearTablaPlantilla(db);
     if (rc != SQLITE_OK) {
         sqlite3_close(db);
         return 1;
@@ -82,11 +88,12 @@ rc = crearTablaPlantilla(db);
             case 2: {
                 if (iniciarSesionMenu(db, nombreUsuarioAutenticado)) {
                     printf("Bienvenido, %s!\n", nombreUsuarioAutenticado);
+                    int idUsuario = buscarIDUsuario(db, nombreUsuarioAutenticado);
 
                     if (strcmp(nombreUsuarioAutenticado, "DeustoMotors") == 0) {
                         menuAdministrativo(db);
                     } else {
-                        menuBasico();
+                        menuBasico(db, idUsuario);
                     }
                 } else {
                     printf("Inicio de sesion fallido. Por favor, intente nuevamente.\n");

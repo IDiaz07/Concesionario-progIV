@@ -18,7 +18,7 @@ void anadirVehiculo(sqlite3  *db, FILE *archivo) {
     scanf("%d", &nuevoVehiculo.anio);
 
     printf("Introduce el precio del vehiculo: ");
-    scanf("%f", &nuevoVehiculo.precio);
+    scanf("%i", &nuevoVehiculo.precio);
 
     guardarVehiculo(archivo, nuevoVehiculo);
     crearTablaVehiculos(db);
@@ -28,7 +28,7 @@ void anadirVehiculo(sqlite3  *db, FILE *archivo) {
 void ComprarVehiculo(sqlite3 *db){
     Vehiculo vehiculoComprado;
     char nombreUsuario[50];
- printf("Introduce la marca del vehiculo: ");
+    printf("Introduce la marca del vehiculo: ");
     scanf("%s", vehiculoComprado.marca);
 
     printf("Introduce el modelo del vehiculo: ");

@@ -19,4 +19,10 @@ int mostrarPlantilla(sqlite3 *db);
 float obtenerPrecioVehiculo(sqlite3 *db, const char *marca, const char *modelo);
 int buscarIDVehiculo(sqlite3 *db,const char *marca, const char *modelo, int anio,int precio);
 int buscarIDUsuario(sqlite3 *db,const char *nombre_usuario );
+
+int crearTablaNotificaciones(sqlite3 *db);
+int insertarNotificacion(sqlite3 *db, int id_usuario, const char *mensaje);
+void mostrarNotificaciones(sqlite3 *db, int idUsuario);
+
+
 #endif

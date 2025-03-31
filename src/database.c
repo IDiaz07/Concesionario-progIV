@@ -30,7 +30,6 @@ int crearTablaUsuarios(sqlite3 *db) {
     return SQLITE_OK;
 }
 
-
 int crearTablaVehiculos(sqlite3 *db) {
     const char *sql = "CREATE TABLE IF NOT EXISTS vehiculos ("
                       "id INTEGER PRIMARY KEY AUTOINCREMENT, "
@@ -339,4 +338,70 @@ float obtenerPrecioVehiculo(sqlite3 *db, const char *marca, const char *modelo) 
 
     sqlite3_finalize(stmt);
     return precio;
+}
+
+int crearTablaNotificaciones(sqlite3 *db) {
+    const char *sql = "CREATE TABLE IF NOT EXISTS notificaciones ("
+                        "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                        "id_usuario INTEGER,"
+                        "mensaje TEXT,"
+                        "leido INTEGER DEFAULT 0,"
+                        "FOREIGN KEY (id_usuario) REFERENCES usuarios(id)"
+                        ");";
+
+    char *errMsg;
+    int rc = sqlite3_exec(db, sql, 0, 0, &errMsg);
+    if (rc != SQLITE_OK) {
+        printf("Error al crear la tabla de notificaciones: %s\n", errMsg);
+        sqlite3_free(errMsg);
+        return rc;
+    }
+    return SQLITE_OK;
+}
+
+int insertarNotificacion(sqlite3 *db, int id_usuario, const char *mensaje) {
+    sqlite3_stmt *stmt;
+    const char *sql = "INSERT INTO notificaciones (id_usuario, mensaje) VALUES (?, ?);";
+
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        printf("Error preparando la consulta: %s\n", sqlite3_errmsg(db));
+        return rc;
+    }
+
+    sqlite3_bind_int(stmt, 1, id_usuario);
+    sqlite3_bind_text(stmt, 2, mensaje, -1, SQLITE_STATIC);
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        printf("Error insertando notificación: %s\n", sqlite3_errmsg(db));
+    }
+
+    sqlite3_finalize(stmt);
+    return rc;
+}
+
+void mostrarNotificaciones(sqlite3 *db, int idUsuario) {
+    sqlite3_stmt *stmt;
+    const char *sql = "SELECT mensaje FROM notificaciones WHERE id_usuario = ? AND leido = 0;";
+
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        printf("Error al preparar la consulta: %s\n", sqlite3_errmsg(db));
+        return;
+    }
+
+    sqlite3_bind_int(stmt, 1, idUsuario);
+
+    printf("\n--- Notificaciones No Leídas ---\n");
+    while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+        const char *mensaje = (const char *)sqlite3_column_text(stmt, 0);
+        printf("Mensaje: %s\n", mensaje);
+    }
+
+    if (rc != SQLITE_DONE) {
+        printf("Error al recuperar las notificaciones: %s\n", sqlite3_errmsg(db));
+    }
+
+    sqlite3_finalize(stmt);
 }
