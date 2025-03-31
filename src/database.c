@@ -5,7 +5,7 @@
 #include <locale.h>
 
 int abrirDB(sqlite3 **db) {
-    int rc = sqlite3_open("usuarios.db", db);
+    int rc = sqlite3_open("db.db", db);
     if (rc) {
         printf("No se pudo abrir la base de datos: %s\n", sqlite3_errmsg(*db));
         return rc;

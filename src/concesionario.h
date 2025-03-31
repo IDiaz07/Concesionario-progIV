@@ -1,9 +1,11 @@
 #ifndef CONCESIONARIO_H
 #define CONCESIONARIO_H
 
-void mostrarMenu();
-int seleccionarOpcion();
-void mostrarMenuPrincipal();
-int seleccionarOpcionPrincipal();
+#include "sqlite3.h"
+
+void mostrarMenuDeustoMotors();
+int seleccionarOpcionDeustoMotors();
+void anadirVehiculo(sqlite3 *db, FILE *archivo);
+void cargarPlantillaDesdeArchivo(sqlite3 *db, const char *filename);
 
 #endif

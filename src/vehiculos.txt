@@ -26,3 +26,4 @@ Ford;Focus;1997;12000.00
 for;foces;2000;2000.00
 Ford;Focus;2000;12000.00
 Subaru;Impreza;2006;15000.00
+Toyota;C-HR;2025;31,00
