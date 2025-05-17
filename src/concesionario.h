@@ -7,5 +7,6 @@ void mostrarMenuDeustoMotors();
 int seleccionarOpcionDeustoMotors();
 void anadirVehiculo(sqlite3 *db, FILE *archivo);
 void cargarPlantillaDesdeArchivo(sqlite3 *db, const char *filename);
+char nombreUsuarioAutenticado[50];
 
 #endif
