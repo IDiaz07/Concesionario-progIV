@@ -4,21 +4,21 @@
 #include "file.h"
 #include "vehiculos.h"
 #include "database.h"
+#include <winsock2.h>
 
 
-
-void inicializarArchivo(FILE** archivo) {
+void inicializarArchivo(FILE** archivo,SOCKET cliente_fd ) {
     *archivo = fopen("vehiculos.txt", "a+");
     if (*archivo == NULL) {
-        printf("No se pudo abrir el archivo.\n");
+        send(cliente_fd,"No se pudo abrir el archivo.\n",30,0);
         exit(1);
     }
 }
 
 
-void guardarVehiculo(FILE *archivo, Vehiculo v) {
+void guardarVehiculo(FILE *archivo, Vehiculo v,SOCKET cliente_fd) {
     if (archivo == NULL) {
-        printf("Error: No se puede abrir el archivo.\n");
+        send(cliente_fd,"Error: No se puede abrir el archivo.\n",3,0);
         return;
     }
 
@@ -26,32 +26,34 @@ void guardarVehiculo(FILE *archivo, Vehiculo v) {
     fflush(archivo); 
 }
 
-void mostrarVehiculos(FILE* archivo) {
+void mostrarVehiculos(FILE* archivo, SOCKET cliente_fd) {
     char linea[256];
     rewind(archivo);
     while (fgets(linea, sizeof(linea), archivo) != NULL) {
-        printf("%s", linea);
+         send(cliente_fd, linea, strlen(linea), 0);
     }
 }
 
-void FiltrarMarca(FILE* archivo){
+void FiltrarMarca(FILE* archivo,SOCKET cliente_fd){
     char filtro[50];
     char linea[256];
     char marca[50];
-     printf("Introduce la marca: ");
-    scanf("%s", filtro);
+   char buffer[256];
+
+    
+    send(cliente_fd, "Introduce la marca: ", 21, 0);
+    recv(cliente_fd, buffer, sizeof(buffer), 0);
+    sscanf(buffer, "%s", filtro);
+
     rewind(archivo);
     while (fgets(linea, sizeof(linea), archivo) != NULL) {
-        
-        sscanf(linea, "%49s[^;]", marca);
+        // Extraer marca (hasta primer punto y coma)
+        sscanf(linea, "%[^;]", marca);
 
-        
         if (strcmp(marca, filtro) == 0) {
-            printf("%s \n", linea);  
-    
-
+            send(cliente_fd, linea, strlen(linea), 0);
+        }
     }
-}
 }
 
 
