@@ -1,62 +1,55 @@
+// servidor.c
 #include <winsock2.h>
-#include <ws2tcpip.h>
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>
 #include "database.h"
-#include "menubasico.h"
+#include "file.h"
 
-#pragma comment(lib, "ws2_32.lib")  // Solo si usas Visual Studio
+#pragma comment(lib, "ws2_32.lib")
 
 #define PUERTO 12345
 #define BUFFER_SIZE 1024
-/*
+
 void manejarCliente(SOCKET cliente_fd, sqlite3* db) {
-    char buffer[1024];
+    char buffer[BUFFER_SIZE];
     char nombreUsuario[50];
-    int idUsuario;
 
     while (1) {
-        // Menú principal
-        send(cliente_fd, "Menu Principal:\n1. Registro\n2. Iniciar sesion\n3. Salir\nSeleccione una opcion: ", 95, 0);
+        memset(buffer, 0, sizeof(buffer));
         recv(cliente_fd, buffer, sizeof(buffer), 0);
 
-        if (strncmp(buffer, "1", 1) == 0) {
-            registrarUsuarioMenuRemoto(db, cliente_fd);
-        }
-        else if (strncmp(buffer, "2", 1) == 0) {
-            iniciarSesionMenuRemoto(db, cliente_fd, nombreUsuario);
-
-            idUsuario = buscarIDUsuario(db, nombreUsuario);
-
-            if (strcmp(nombreUsuario, "DeustoMotors") == 0) {
-                menuAdministrativoRemoto(db, cliente_fd);
+        if (strncmp(buffer, "LOGIN", 5) == 0) {
+            char user[50], pass[50];
+            sscanf(buffer, "LOGIN %s %s", user, pass);
+            int ok = verificarUsuario(db, user, pass);
+            if (ok == SQLITE_OK) {
+                strcpy(nombreUsuario, user);
+                send(cliente_fd, "Inicio de sesion exitoso.\n", 28, 0);
             } else {
-                menuBasico(db, idUsuario);
+                send(cliente_fd, "Inicio de sesion incorrecto.\n", 30, 0);
             }
-        }
-        else if (strncmp(buffer, "3", 1) == 0) {
-            send(cliente_fd, "Saliendo del programa...\n", 26, 0);
+        } else if (strncmp(buffer, "LISTAR", 6) == 0) {
+            FILE* archivo;
+            inicializarArchivo(&archivo, cliente_fd);
+            mostrarVehiculos(archivo, cliente_fd);
+            fclose(archivo);
+        } else if (strncmp(buffer, "SALIR", 5) == 0) {
+            send(cliente_fd, "Desconectando...\n", 18, 0);
             break;
-        }
-        else {
-            send(cliente_fd, "Opcion no valida.\n", 19, 0);
+        } else {
+            send(cliente_fd, "Comando no reconocido.\n", 24, 0);
         }
     }
 }
 
-*/
 int main() {
     WSADATA wsa;
     SOCKET servidor_fd, cliente_fd;
     struct sockaddr_in direccion;
-    char buffer[BUFFER_SIZE];
     sqlite3 *db;
 
-    if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
-        printf("Error inicializando Winsock.\n");
-        return 1;
-    }
+    WSAStartup(MAKEWORD(2, 2), &wsa);
 
     if (abrirDB(&db) != SQLITE_OK) {
         printf("No se pudo abrir la base de datos.\n");
@@ -74,7 +67,11 @@ int main() {
     printf("Servidor escuchando en puerto %d...\n", PUERTO);
     cliente_fd = accept(servidor_fd, NULL, NULL);
     printf("Cliente conectado.\n");
-    
-     //manejarCliente(cliente_fd, db);
-    
+
+    manejarCliente(cliente_fd, db);
+
+    closesocket(cliente_fd);
+    closesocket(servidor_fd);
+    WSACleanup();
+    return 0;
 }
