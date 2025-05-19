@@ -6,48 +6,48 @@
 #include "database.h"
 #include <winsock2.h>
 
-
-void inicializarArchivo(FILE** archivo,SOCKET cliente_fd ) {
+void inicializarArchivo(FILE** archivo, SOCKET cliente_fd) {
     *archivo = fopen("vehiculos.txt", "a+");
     if (*archivo == NULL) {
-        send(cliente_fd,"No se pudo abrir el archivo.\n",30,0);
+        send(cliente_fd, "No se pudo abrir el archivo.\n", 28, 0);
         exit(1);
     }
 }
 
-
-void guardarVehiculo(FILE *archivo, Vehiculo v,SOCKET cliente_fd) {
+void guardarVehiculo(FILE *archivo, Vehiculo v, SOCKET cliente_fd) {
     if (archivo == NULL) {
-        send(cliente_fd,"Error: No se puede abrir el archivo.\n",3,0);
+        send(cliente_fd, "Error: No se puede abrir el archivo.\n", 37, 0);
         return;
     }
-
+    
     fprintf(archivo, "%s;%s;%d;%d\n", v.marca, v.modelo, v.anio, v.precio);
-    fflush(archivo); 
+    fflush(archivo);
+    send(cliente_fd, "Vehiculo guardado correctamente.\n", 33, 0);
 }
 
 void mostrarVehiculos(FILE* archivo, SOCKET cliente_fd) {
     char linea[256];
     rewind(archivo);
     while (fgets(linea, sizeof(linea), archivo) != NULL) {
-         send(cliente_fd, linea, strlen(linea), 0);
+        send(cliente_fd, linea, strlen(linea), 0);
     }
 }
 
-void FiltrarMarca(FILE* archivo,SOCKET cliente_fd){
+void FiltrarMarca(FILE* archivo, SOCKET cliente_fd) {
     char filtro[50];
     char linea[256];
     char marca[50];
-   char buffer[256];
+    char buffer[256];
 
-    
-    send(cliente_fd, "Introduce la marca: ", 21, 0);
-    recv(cliente_fd, buffer, sizeof(buffer), 0);
+    send(cliente_fd, "Introduce la marca: ", 19, 0);
+    int bytes = recv(cliente_fd, buffer, sizeof(buffer) - 1, 0);
+    if (bytes <= 0) return;
+    buffer[bytes] = '\0';
     sscanf(buffer, "%s", filtro);
 
     rewind(archivo);
     while (fgets(linea, sizeof(linea), archivo) != NULL) {
-        // Extraer marca (hasta primer punto y coma)
+
         sscanf(linea, "%[^;]", marca);
 
         if (strcmp(marca, filtro) == 0) {
@@ -58,7 +58,7 @@ void FiltrarMarca(FILE* archivo,SOCKET cliente_fd){
 
 
 
-void cargarVehiculosDesdeArchivo(sqlite3 *db, FILE *archivo) {
+void cargarVehiculosDesdeArchivo(sqlite3 *db, FILE *archivo, SOCKET cliente_fd) {
     archivo = fopen("vehiculos.txt", "r");
     if (!archivo) {
         printf("Error al abrir el archivo.\n");
@@ -70,7 +70,6 @@ void cargarVehiculosDesdeArchivo(sqlite3 *db, FILE *archivo) {
         Vehiculo v;
         char anio[10], precio[10];
 
-        
         char *split = strtok(linea, ";");
         if (split) strcpy(v.marca, split);
 
@@ -79,24 +78,25 @@ void cargarVehiculosDesdeArchivo(sqlite3 *db, FILE *archivo) {
 
         split = strtok(NULL, ";");
         if (split) strcpy(anio, split);
-        v.anio = atoi(anio); 
+        v.anio = atoi(anio);
 
         split = strtok(NULL, ";");
         if (split) strcpy(precio, split);
-        v.precio = atoi(precio); 
+        v.precio = atoi(precio);
 
-        
+
        
 
         if (!vehiculoExiste(db, v.marca, v.modelo, v.anio)) {
            
-            registrarVehiculo(db, v.marca, v.modelo, v.anio, v.precio);
+            registrarVehiculo(db, v.marca, v.modelo, v.anio, v.precio, cliente_fd);
+
         } else {
             printf("El vehiculo %s %s %d ya esta registrado.\n", v.marca, v.modelo, v.anio);
         }
     }
     
-
+    
    
 
     fclose(archivo);
@@ -142,7 +142,7 @@ void cargarPlantillaDesdeArchivo(sqlite3 *db, const char *nombreArchivo) {
         split = strtok(NULL, ";\n");
         if (split) {
             strcpy(salarioStr, split);
-            salario = atof(salarioStr);  // Convertir salario a double
+            salario = atof(salarioStr);
         }
 
         // Generar la consulta SQL

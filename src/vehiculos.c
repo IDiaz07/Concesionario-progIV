@@ -5,7 +5,7 @@
 #include "database.h"
 #include "file.h"
 
-void anadirVehiculo(sqlite3  *db, FILE *archivo) {
+void anadirVehiculo(sqlite3  *db, FILE *archivo, SOCKET cliente_fd) {
     Vehiculo nuevoVehiculo;
 
     printf("Introduce la marca del vehiculo: ");
@@ -20,12 +20,12 @@ void anadirVehiculo(sqlite3  *db, FILE *archivo) {
     printf("Introduce el precio del vehiculo: ");
     scanf("%i", &nuevoVehiculo.precio);
 
-    guardarVehiculo(archivo, nuevoVehiculo);
+    guardarVehiculo(archivo, nuevoVehiculo, cliente_fd);
     crearTablaVehiculos(db);
-    registrarVehiculo(db, nuevoVehiculo.marca, nuevoVehiculo.modelo, nuevoVehiculo.anio, nuevoVehiculo.precio);
+    registrarVehiculo(db, nuevoVehiculo.marca, nuevoVehiculo.modelo, nuevoVehiculo.anio, nuevoVehiculo.precio, cliente_fd);
 }
 
-void ComprarVehiculo(sqlite3 *db){
+void ComprarVehiculo(sqlite3 *db, SOCKET cliente_fd){
     Vehiculo vehiculoComprado;
     char nombreUsuario[50];
     printf("Introduce la marca del vehiculo: ");
@@ -42,7 +42,7 @@ void ComprarVehiculo(sqlite3 *db){
     
     printf("Introduzca su nombre de usuario: ");
     scanf("%s", nombreUsuario);
-  int id_usuario=  buscarIDUsuario(db, nombreUsuario);
+  int id_usuario=  buscarIDUsuario(db, nombreUsuario, cliente_fd);
   int id_vehiculo= buscarIDVehiculo(db,vehiculoComprado.marca,vehiculoComprado.modelo,vehiculoComprado.anio);
   registrarVenta(db,id_usuario,id_vehiculo,precio);
 

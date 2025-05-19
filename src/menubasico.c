@@ -7,69 +7,74 @@
 #include "contacto.h"
 #include "notificaciones.h"
 
-void mostrarMenu() {
-    printf("\nMenu DeustoMotors:\n");
-    printf("1. Mostrar Vehiculos\n");
-    printf("2. Servicios\n");
-    printf("3. Prueba de Manejo\n");
-    printf("4. Contacto\n");
-    printf("5. Notificaciones\n");
-    printf("6. Salir\n");
-}
-
-
-int seleccionarOpcion() {
-    int opcion;
-    printf("Seleccione una opcion: ");
-    scanf("%d", &opcion);
-    return opcion;
-}
-
-void menuBasico(sqlite3 *db, int idUsuario){
-    // Menú básico para otros usuarios
+void menuBasico(sqlite3 *db, const char *usuario, int idUsuario, SOCKET cliente_fd) {
     FILE* archivo;
-    inicializarArchivo(&archivo);
+    inicializarArchivo(&archivo, cliente_fd);
+    char buffer[256];
     int opcionConcesionario;
-    do {
-        mostrarMenu();
-        opcionConcesionario = seleccionarOpcion();
 
+    do {
+        // Enviar menú al cliente
+        const char *menu =
+            "\n=== Menu DeustoMotors ===\n"
+            "1. Mostrar Vehiculos\n"
+            "2. Servicios\n"
+            "3. Prueba de Manejo\n"
+            "4. Contacto\n"
+            "5. Notificaciones\n"
+            "6. Salir\n"
+            "Seleccione una opcion: ";
+        send(cliente_fd, menu, strlen(menu), 0);
+
+        // Recibir opción del cliente
+        memset(buffer, 0, sizeof(buffer));
+        int bytesRecibidos = recv(cliente_fd, buffer, sizeof(buffer) - 1, 0);
+        if (bytesRecibidos <= 0) {
+            break; // desconectado o error
+        }
+
+        opcionConcesionario = atoi(buffer);
 
         switch (opcionConcesionario) {
-            case 1:{
-                int subopcion;
-                printf("\n1. Ver todos los vehiculos\n");
-                printf("2. Busqueda avanzada\n");
-                printf("Elige una opcion: ");
-                scanf("%d", &subopcion);
+            case 1: {
+                const char *sub =
+                    "\n1. Ver todos los vehiculos\n"
+                    "2. Busqueda avanzada\n"
+                    "Elige una opcion: ";
+                send(cliente_fd, sub, strlen(sub), 0);
+
+                memset(buffer, 0, sizeof(buffer));
+                int bytes = recv(cliente_fd, buffer, sizeof(buffer) - 1, 0);
+                int subopcion = atoi(buffer);
+
                 if (subopcion == 1) {
-                    mostrarVehiculos(archivo);  
+                    mostrarVehiculos(archivo, cliente_fd);
                 } else if (subopcion == 2) {
-                    filtrarVehiculos(archivo);  
+                    filtrarVehiculos(archivo);
                 } else {
-                    printf("Opcion no valida.\n");
+                    const char *msg = "Opcion no valida.\n";
+                    send(cliente_fd, msg, strlen(msg), 0);
                 }
-                break;}
+                break;
+            }
             case 2:
-                MenuServicios();
+                MenuServicios(db, usuario, cliente_fd);
                 break;
             case 3:
-                // Implementar metodo PruebaManejo();
+                send(cliente_fd, "Prueba de manejo no implementada.\n", 34, 0);
                 break;
             case 4:
                 mostrarContacto();
                 break;
             case 5:
-                mostrarNotificaciones(db, idUsuario);
+                mostrarNotificaciones(db, idUsuario, cliente_fd);
                 menuNoti(db);
                 break;
             case 6:
-                printf("Saliendo del programa...\n");
+                send(cliente_fd, "Saliendo del programa...\n", 26, 0);
                 break;
             default:
-                printf("Opcion no valida.\n");
+                send(cliente_fd, "Opcion no valida.\n", 19, 0);
         }
     } while (opcionConcesionario != 6);
 }
-
-

@@ -23,10 +23,10 @@ int seleccionarOpcionDeustoMotors() {
     return opcion;
 }
 
-void menuAdministrativo(sqlite3 *db) {
+void menuAdministrativo(sqlite3 *db, SOCKET cliente_fd) {
     // Menú especial para Administradores
     FILE* archivo;
-    inicializarArchivo(&archivo);
+    inicializarArchivo(&archivo, cliente_fd);
     int opcionDeustoMotors;
     do {
         mostrarMenuDeustoMotors();
@@ -41,7 +41,7 @@ void menuAdministrativo(sqlite3 *db) {
             // Implementar verVehiculosVendidos()
             break;
         case 3:
-            anadirVehiculo(db,archivo);
+            anadirVehiculo(db,archivo, cliente_fd);
             break;
         case 4:
             cargarPlantillaDesdeArchivo(db, "plantilla.txt");

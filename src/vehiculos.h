@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include "database.h"
+#include "sockets.h"
 
 typedef struct {
     char marca[50];
@@ -12,10 +13,10 @@ typedef struct {
 } Vehiculo;
 
 
-void anadirVehiculo(sqlite3 *db, FILE* archivo);
+void anadirVehiculo(sqlite3 *db, FILE* archivo, SOCKET cliente_fd);
 
 
 void filtrarVehiculos(FILE* archivo);
 
-void ComprarVehiculo(sqlite3 *db);
+void ComprarVehiculo(sqlite3 *db, SOCKET cliente_fd);
 #endif

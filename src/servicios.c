@@ -9,26 +9,20 @@
 
 void mostrarMenuServicios(SOCKET cliente_fd) {
     const char* menu =
-        "\nMenu Servicios:\n"
+        "\n=== Menu de Servicios ===\n"
         "1. Mantenimiento y Reparacion\n"
         "2. Garantias\n"
-        "3. Comprar\n"
+        "3. Comprar Vehiculo\n"
         "4. Calificar Servicios\n"
         "5. Salir\n"
         "Selecciona una opcion: ";
     send(cliente_fd, menu, strlen(menu), 0);
 }
 
-// Menú principal de servicios (servidor)
-void MenuServiciosRemoto(SOCKET cliente_fd) {
+// 🔧 Función principal llamada desde el menú básico
+void MenuServicios(sqlite3 *db, const char *usuario, SOCKET cliente_fd) {
     FILE* archivo;
     inicializarArchivo(&archivo, cliente_fd);
-
-    sqlite3 *db;
-    if (abrirDB(&db) != SQLITE_OK) {
-        send(cliente_fd, "Error al abrir la base de datos.\n", 34, 0);
-        return;
-    }
 
     char buffer[256];
     int opcion = 0;
@@ -36,12 +30,14 @@ void MenuServiciosRemoto(SOCKET cliente_fd) {
     do {
         mostrarMenuServicios(cliente_fd);
         memset(buffer, 0, sizeof(buffer));
-        recv(cliente_fd, buffer, sizeof(buffer), 0);
+        int bytes = recv(cliente_fd, buffer, sizeof(buffer), 0);
+        if (bytes <= 0) break;
+
         opcion = atoi(buffer);
 
         switch (opcion) {
             case 1:
-                mantenimientoYReparacionRemoto(cliente_fd);
+                mantenimientoYReparacionRemoto(db, cliente_fd);
                 break;
             case 2:
                 garantiasRemoto(cliente_fd);
@@ -64,7 +60,16 @@ void MenuServiciosRemoto(SOCKET cliente_fd) {
     } while (opcion != 5);
 
     fclose(archivo);
-    sqlite3_close(db);
+}
+
+
+// En servicios.c
+void mantenimientoYReparacionRemoto(sqlite3 *db, SOCKET cliente_fd) {
+    send(cliente_fd, "Funcion mantenimiento no implementada.\n", 40, 0);
+}
+
+void ComprarVehiculoRemoto(sqlite3 *db, SOCKET cliente_fd) {
+    send(cliente_fd, "Funcion compra no implementada.\n", 34, 0);
 }
 
 // Garantías por socket
@@ -72,7 +77,7 @@ void garantiasRemoto(SOCKET cliente_fd) {
     const char* mensaje =
         "Accion seleccionada: Garantias\n"
         "Mostrando informacion sobre garantias...\n"
-        "- Todos nuestros vehículos tienen garantía de 2 años o 30,000 km.\n"
+        "- Todos nuestros vehiculos tienen garantia de 2 anyos o 30,000 km.\n"
         "- Las reparaciones en concesionarios oficiales están cubiertas.\n";
     send(cliente_fd, mensaje, strlen(mensaje), 0);
 }
