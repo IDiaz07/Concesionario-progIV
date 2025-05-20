@@ -1,60 +1,62 @@
 #include <stdio.h>
-#include <stdlib.h>
+#include <string.h>
+#include <winsock2.h>
 #include "file.h"
 #include "concesionario.h"
 #include "servicios.h"
 #include "database.h"
 #include "mensajesusuarios.h"
 
-void mostrarMenuDeustoMotors() {
-    printf("\nMenu Administrativo:\n");
-    printf("1. Enviar mensaje a los usuarios\n");
-    printf("2. Ver todos los vehiculos vendidos\n");
-    printf("3. Aniadir vehiculo\n");
-    printf("4. Mirar Plantilla\n");
-    printf("5. Salir\n");
-}
-
-
-int seleccionarOpcionDeustoMotors() {
-    int opcion;
-    printf("Seleccione una opcion: ");
-    scanf("%d", &opcion);
-    return opcion;
-}
+#define BUFFER_SIZE 256
 
 void menuAdministrativo(sqlite3 *db, SOCKET cliente_fd) {
-    // Menú especial para Administradores
     FILE* archivo;
     inicializarArchivo(&archivo, cliente_fd);
-    int opcionDeustoMotors;
-    do {
-        mostrarMenuDeustoMotors();
-        opcionDeustoMotors = seleccionarOpcionDeustoMotors();
 
+    char buffer[BUFFER_SIZE];
+    int opcionDeustoMotors;
+
+    do {
+        const char *menu =
+            "\n=== Menu Administrativo ===\n"
+            "1. Enviar mensaje a los usuarios\n"
+            "2. Ver todos los vehiculos vendidos\n"
+            "3. Aniadir vehiculo\n"
+            "4. Mirar Plantilla\n"
+            "5. Salir\n"
+            "Seleccione una opcion: ";
+        send(cliente_fd, menu, strlen(menu), 0);
+
+        memset(buffer, 0, sizeof(buffer));
+        int bytes = recv(cliente_fd, buffer, sizeof(buffer) - 1, 0);
+        if (bytes <= 0) break;
+
+        opcionDeustoMotors = atoi(buffer);
 
         switch (opcionDeustoMotors) {
-        case 1:
-            enviarMensajeAUsuarios(db);
-            break;
-        case 2:
-            // Implementar verVehiculosVendidos()
-            break;
-        case 3:
-            anadirVehiculo(db,archivo, cliente_fd);
-            break;
-        case 4:
-            cargarPlantillaDesdeArchivo(db, "plantilla.txt");
-            mostrarPlantilla(db);
-            break;
-        case 5:
-
-            break;
-        case 6:
-            printf("Saliendo del programa...\n");
-            break;
-        default:
-            printf("Opcion no valida.\n");
+            case 1:
+                enviarMensajeAUsuarios(db);  // Si imprime por consola, adaptalo también
+                send(cliente_fd, "Mensajes enviados.\n", 20, 0);
+                break;
+            case 2:
+                send(cliente_fd, "Funcion ver vehiculos vendidos no implementada.\n", 49, 0);
+                break;
+            case 3:
+                anadirVehiculo(db, archivo, cliente_fd);  // ya espera cliente_fd
+                break;
+            case 4:
+                cargarPlantillaDesdeArchivo(db, "plantilla.txt");
+                mostrarPlantilla(db);  // Si imprime por consola, deberías adaptarla
+                send(cliente_fd, "Plantilla mostrada.\n", 21, 0);
+                break;
+            case 5:
+                send(cliente_fd, "Saliendo del menu administrativo...\n", 36, 0);
+                break;
+            default:
+                send(cliente_fd, "Opcion no valida.\n", 19, 0);
+                break;
         }
     } while (opcionDeustoMotors != 5);
+
+    fclose(archivo);
 }

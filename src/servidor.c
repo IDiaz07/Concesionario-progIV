@@ -5,6 +5,7 @@
 #include <string.h>
 #include "sqlite3.h"
 #include "menubasico.h"
+#include "menuadministrativo.h"
 #include "database.h"
 
 #pragma comment(lib, "ws2_32.lib")
@@ -48,7 +49,13 @@ void manejarCliente(SOCKET cliente_fd, sqlite3* db) {
                     if (idUsuario != -1) {
                         send(cliente_fd, "Exito|Login correcto|\n", 24, 0);
                         Sleep(100);
-                        menuBasico(db, user, idUsuario, cliente_fd);
+                        if (stricmp(user, "DeustoMotors") == 0 && stricmp(pass, "DeustoMotors05") == 0) {
+                            send(cliente_fd, "Exito|Login correcto ADMIN|\n", 28, 0);
+
+                            menuAdministrativo(db, cliente_fd);
+                        } else {
+                            menuBasico(db, user, idUsuario, cliente_fd);
+                        }
                     }
                 } else {
                     send(cliente_fd, "Error|Credenciales incorrectas\n", 33, 0);
