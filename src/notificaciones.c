@@ -4,8 +4,13 @@
 #include "database.h"
 
 // Función para mostrar el menú de notificaciones
-void menuNoti(sqlite3 *db, int id_usuario) {
-    int opcion;
+void menuNoti(sqlite3 *db, int id_usuario, SOCKET cliente_fd) {
+    char buffer[256];
+    send(cliente_fd, "MenuNotificaciones|1. Eliminar todas|2. Eliminar una|3. Salir|", 60, 0);
+
+    int opcion = 0;
+    recv(cliente_fd, buffer, sizeof(buffer), 0);
+    opcion = atoi(buffer);
     do {
         printf("\nMenu Notificaciones:\n");
         printf("1. Eliminar todas las Notificaciones\n");
@@ -17,20 +22,18 @@ void menuNoti(sqlite3 *db, int id_usuario) {
         switch (opcion) {
             case 1:
                 // Llamamos a la función para eliminar todas las notificaciones de un usuario
-                eliminarTodasLasNotificaciones(db, id_usuario);
+                eliminarTodasLasNotificaciones(db, id_usuario, cliente_fd);
                 break;
             case 2:
-                printf("Ingrese el ID de la notificacion a eliminar: ");
-                int id;
-                scanf("%d", &id);
-                // Llamamos a la función para eliminar una notificación específica de un usuario
-                eliminarNotificacionPorID(db, id_usuario, id);
+                send(cliente_fd, "Ingrese el ID de la notificación a eliminar:", 45, 0);
+                recv(cliente_fd, buffer, sizeof(buffer), 0);
+                eliminarNotificacionPorID(db, id_usuario, atoi(buffer), cliente_fd);
                 break;
             case 3:
-                printf("Saliendo del menu de notificaciones...\n");
+                send(cliente_fd, "Saliendo del menú de notificaciones", 35, 0);
                 break;
             default:
-                printf("Opcion no valida. Intente nuevamente.\n");
+                send(cliente_fd, "Opción no válida", 17, 0);
                 break;
         }
     } while (opcion != 3);

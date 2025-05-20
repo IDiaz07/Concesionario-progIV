@@ -122,24 +122,25 @@ void listarVehiculos(sqlite3 *db, SOCKET cliente_fd) {
 // -------------------- MANEJO DE NOTIFICACIONES --------------------
 void mostrarNotificaciones(sqlite3 *db, int idUsuario, SOCKET cliente_fd) {
     sqlite3_stmt *stmt;
-    const char *sql = "SELECT mensaje FROM notificaciones WHERE id_usuario = ? AND leido = 0;";
-    char buffer[256];
-    
+    const char *sql = "SELECT id, mensaje FROM notificaciones WHERE id_usuario = ?;";
+    char buffer[512];
+
     int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        send(cliente_fd, "Error|Error en notificaciones|", 29, 0);
+        send(cliente_fd, "Error|No se pudo obtener notificaciones|", 40, 0);
         return;
     }
 
     sqlite3_bind_int(stmt, 1, idUsuario);
-    send(cliente_fd, "Notificaciones|", 15, 0);
-    
+    send(cliente_fd, "InicioNotificaciones|", 22, 0);
+
     while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
-        snprintf(buffer, sizeof(buffer), "%s", sqlite3_column_text(stmt, 0));
+        int id = sqlite3_column_int(stmt, 0);
+        const char *mensaje = (const char *)sqlite3_column_text(stmt, 1);
+        snprintf(buffer, sizeof(buffer), "ID:%d|Mensaje:%s\n", id, mensaje);
         send(cliente_fd, buffer, strlen(buffer), 0);
-        send(cliente_fd, "|", 1, 0);
     }
-    
+
     send(cliente_fd, "FinNotificaciones|", 18, 0);
     sqlite3_finalize(stmt);
 }
@@ -309,22 +310,46 @@ int insertarNotificacion(sqlite3 *db, int id_usuario, const char *mensaje) {
     return (rc == SQLITE_DONE) ? SQLITE_OK : rc;
 }
 
-void eliminarTodasLasNotificaciones(sqlite3 *db, int id_usuario) {
-    char *errMsg = NULL;
-    char sql[128];
-    snprintf(sql, sizeof(sql), "DELETE FROM notificaciones WHERE id_usuario=%d", id_usuario);
-    sqlite3_exec(db, sql, 0, 0, &errMsg);
-    sqlite3_free(errMsg);
+void eliminarTodasLasNotificaciones(sqlite3 *db, int id_usuario, SOCKET cliente_fd) {
+    sqlite3_stmt *stmt;
+    const char *sql = "DELETE FROM notificaciones WHERE id_usuario = ?;";
+    
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        send(cliente_fd, "Error|Fallo al preparar eliminación masiva|", 43, 0);
+        return;
+    }
+
+    sqlite3_bind_int(stmt, 1, id_usuario);
+    rc = sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+
+    if (rc != SQLITE_DONE) {
+        send(cliente_fd, "Error|Fallo al eliminar notificaciones|", 38, 0);
+    } else {
+        send(cliente_fd, "Exito|Notificaciones eliminadas|", 32, 0);
+    }
 }
 
-void eliminarNotificacionPorID(sqlite3 *db, int id_usuario, int id_notificacion) {
+void eliminarNotificacionPorID(sqlite3 *db, int id_usuario, int id_notificacion, SOCKET cliente_fd) {
     sqlite3_stmt *stmt;
-    const char *sql = "DELETE FROM notificaciones WHERE id_usuario = ? AND id = ?";
-    if (sqlite3_prepare_v2(db, sql, -1, &stmt, 0) != SQLITE_OK) return;
+    const char *sql = "DELETE FROM notificaciones WHERE id_usuario = ? AND id = ?;";
+    
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
+    if (rc != SQLITE_OK) {
+        send(cliente_fd, "Error|No se pudo preparar la consulta|", 37, 0);
+        return;
+    }
 
     sqlite3_bind_int(stmt, 1, id_usuario);
     sqlite3_bind_int(stmt, 2, id_notificacion);
 
-    sqlite3_step(stmt);
+    rc = sqlite3_step(stmt);
     sqlite3_finalize(stmt);
+
+    if (rc != SQLITE_DONE) {
+        send(cliente_fd, "Error|No se pudo eliminar la notificacion|", 42, 0);
+    } else {
+        send(cliente_fd, "Exito|Notificacion eliminada|", 29, 0);
+    }
 } 

@@ -38,8 +38,8 @@ int buscarIDVehiculo(sqlite3 *db,const char *marca, const char *modelo, int anio
 int crearTablaNotificaciones(sqlite3 *db);
 int insertarNotificacion(sqlite3 *db, int id_usuario, const char *mensaje);
 
-void eliminarTodasLasNotificaciones(sqlite3 *db, int id_usuario);
-void eliminarNotificacionPorID(sqlite3 *db, int id_usuario, int id_notificacion);
+void eliminarTodasLasNotificaciones(sqlite3 *db, int id_usuario, SOCKET cliente_fd);
+void eliminarNotificacionPorID(sqlite3 *db, int id_usuario, int id_notificacion, SOCKET cliente_fd);
 
 
 #endif
