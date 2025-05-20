@@ -67,8 +67,8 @@ void menuBasico(sqlite3 *db, const char *usuario, int idUsuario, SOCKET cliente_
                 mostrarContacto();
                 break;
             case 5:
-                mostrarNotificaciones(db, idUsuario, cliente_fd);
-                menuNoti(db);
+                mostrarNotificaciones(db, idUsuario);
+                menuNoti(db, idUsuario);
                 break;
             case 6:
                 send(cliente_fd, "Saliendo del programa...\n", 26, 0);

@@ -3,6 +3,7 @@
 
 #include "sqlite3.h"
 
-void menuNoti(sqlite3 *db);
+void mostrarNotificaciones(sqlite3 *db, int id_usuario);
+void menuNoti(sqlite3 *db, int id_usuario);
 
 #endif
