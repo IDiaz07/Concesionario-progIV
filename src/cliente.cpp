@@ -138,35 +138,40 @@ int main() {
                         string input;
                         getline(cin, input);
                         if (input.empty()) continue;
+                        input += '\n';  // Asegura que el servidor detecta el final
                         send(sock, input.c_str(), input.length(), 0);
+
 
                         // Manejo especial para la opción 1 del menú administrativo
                         if (input == "1") {
-                            memset(buffer, 0, sizeof(buffer));
-                            int n = recv(sock, buffer, sizeof(buffer) - 1, 0);
-                            if (n > 0) {
-                                buffer[n] = '\0';
-                                printf("%s", buffer);
+                        memset(buffer, 0, sizeof(buffer));
+                        int n = recv(sock, buffer, sizeof(buffer) - 1, 0);
+                        if (n > 0) {
+                            buffer[n] = '\0';
+                            printf("%s", buffer);
 
-                                string mensajePersonalizado;
-                                getline(cin, mensajePersonalizado);
-                                send(sock, mensajePersonalizado.c_str(), mensajePersonalizado.length(), 0);
+                            string mensajePersonalizado;
+                            getline(cin, mensajePersonalizado);
+                            mensajePersonalizado += '\n';  // asegúrate de enviar con salto de línea
+                            send(sock, mensajePersonalizado.c_str(), mensajePersonalizado.length(), 0);
 
-                                string acumulado;
-                                while (true) {
-                                    memset(buffer, 0, sizeof(buffer));
-                                    int r = recv(sock, buffer, sizeof(buffer) - 1, 0);
-                                    if (r <= 0) break;
+                            string acumulado;
+                            while (true) {
+                                memset(buffer, 0, sizeof(buffer));
+                                int r = recv(sock, buffer, sizeof(buffer) - 1, 0);
+                                if (r <= 0) break;
 
-                                    buffer[r] = '\0';
-                                    acumulado += buffer;
+                                buffer[r] = '\0';
+                                acumulado += buffer;
 
-                                    if (acumulado.find("FIN_ENVIO") != string::npos) break;
-                                }
-
-                                cout << acumulado << endl;
+                                if (acumulado.find("FIN_ENVIO") != string::npos) break;
                             }
+
+                            cout << "\n--- Resultados ---\n";
+                            cout << acumulado << endl;
                         }
+                    }
+
                         else if (input == "4") {
                             // Manejo especial para la opción 4 (mostrar plantilla)
                             string plantilla;

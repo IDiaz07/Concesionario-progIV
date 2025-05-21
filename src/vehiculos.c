@@ -5,25 +5,47 @@
 #include "database.h"
 #include "file.h"
 
-void anadirVehiculo(sqlite3  *db, FILE *archivo, SOCKET cliente_fd) {
+void anadirVehiculo(sqlite3 *db, FILE *archivo, SOCKET cliente_fd) {
     Vehiculo nuevoVehiculo;
+    char buffer[256];
+    int bytesRecibidos;
 
-    printf("Introduce la marca del vehiculo: ");
-    scanf("%s", nuevoVehiculo.marca);
+    // Marca
+    send(cliente_fd, "Introduce la marca del vehiculo: ", 34, 0);
+    bytesRecibidos = recv(cliente_fd, buffer, sizeof(buffer) - 1, 0);
+    if (bytesRecibidos <= 0) return;
+    buffer[bytesRecibidos] = '\0';
+    buffer[strcspn(buffer, "\r\n")] = '\0'; // limpia \n
+    strcpy(nuevoVehiculo.marca, buffer);
 
-    printf("Introduce el modelo del vehiculo: ");
-    scanf("%s", nuevoVehiculo.modelo);
+    // Modelo
+    send(cliente_fd, "Introduce el modelo del vehiculo: ", 35, 0);
+    bytesRecibidos = recv(cliente_fd, buffer, sizeof(buffer) - 1, 0);
+    if (bytesRecibidos <= 0) return;
+    buffer[bytesRecibidos] = '\0';
+    buffer[strcspn(buffer, "\r\n")] = '\0';
+    strcpy(nuevoVehiculo.modelo, buffer);
 
-    printf("Introduce el anio del vehiculo: ");
-    scanf("%d", &nuevoVehiculo.anio);
+    // Año
+    send(cliente_fd, "Introduce el anio del vehiculo: ", 33, 0);
+    bytesRecibidos = recv(cliente_fd, buffer, sizeof(buffer) - 1, 0);
+    if (bytesRecibidos <= 0) return;
+    buffer[bytesRecibidos] = '\0';
+    nuevoVehiculo.anio = atoi(buffer);
 
-    printf("Introduce el precio del vehiculo: ");
-    scanf("%i", &nuevoVehiculo.precio);
+    // Precio
+    send(cliente_fd, "Introduce el precio del vehiculo: ", 35, 0);
+    bytesRecibidos = recv(cliente_fd, buffer, sizeof(buffer) - 1, 0);
+    if (bytesRecibidos <= 0) return;
+    buffer[bytesRecibidos] = '\0';
+    nuevoVehiculo.precio = atoi(buffer);
 
+    // Guardar
     guardarVehiculo(archivo, nuevoVehiculo, cliente_fd);
     crearTablaVehiculos(db);
     registrarVehiculo(db, nuevoVehiculo.marca, nuevoVehiculo.modelo, nuevoVehiculo.anio, nuevoVehiculo.precio, cliente_fd);
 }
+
 
 void ComprarVehiculo(sqlite3 *db, SOCKET cliente_fd){
     Vehiculo vehiculoComprado;

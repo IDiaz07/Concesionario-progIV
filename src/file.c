@@ -28,10 +28,16 @@ void guardarVehiculo(FILE *archivo, Vehiculo v, SOCKET cliente_fd) {
 void mostrarVehiculos(FILE* archivo, SOCKET cliente_fd) {
     char linea[256];
     rewind(archivo);
+
     while (fgets(linea, sizeof(linea), archivo) != NULL) {
         send(cliente_fd, linea, strlen(linea), 0);
     }
+
+    
+    const char* fin = "FIN_ENVIO\n";
+    send(cliente_fd, fin, strlen(fin), 0);
 }
+
 
 void FiltrarMarca(FILE* archivo, SOCKET cliente_fd) {
     char filtro[50];
