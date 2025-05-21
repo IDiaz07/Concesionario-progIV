@@ -23,7 +23,7 @@ void menuAdministrativo(sqlite3 *db, SOCKET cliente_fd) {
             "2. Ver todos los vehiculos vendidos\n"
             "3. Aniadir vehiculo\n"
             "4. Mirar Plantilla\n"
-            "5. Salir\n"
+            "5. Cerrar Sesion\n"
             "Seleccione una opcion: ";
         send(cliente_fd, menu, strlen(menu), 0);
 
@@ -35,8 +35,7 @@ void menuAdministrativo(sqlite3 *db, SOCKET cliente_fd) {
 
         switch (opcionDeustoMotors) {
             case 1:
-                enviarMensajeAUsuarios(db);  // Si imprime por consola, adaptalo también
-                send(cliente_fd, "Mensajes enviados.\n", 20, 0);
+                enviarMensajeAUsuarios(db, cliente_fd);  // Si imprime por consola, adaptalo también
                 break;
             case 2:
                 send(cliente_fd, "Funcion ver vehiculos vendidos no implementada.\n", 49, 0);
@@ -46,8 +45,7 @@ void menuAdministrativo(sqlite3 *db, SOCKET cliente_fd) {
                 break;
             case 4:
                 cargarPlantillaDesdeArchivo(db, "plantilla.txt");
-                mostrarPlantilla(db);  // Si imprime por consola, deberías adaptarla
-                send(cliente_fd, "Plantilla mostrada.\n", 21, 0);
+                mostrarPlantilla(db, cliente_fd);
                 break;
             case 5:
                 send(cliente_fd, "Saliendo del menu administrativo...\n", 36, 0);

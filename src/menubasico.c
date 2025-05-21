@@ -67,11 +67,11 @@ void menuBasico(sqlite3 *db, const char *usuario, int idUsuario, SOCKET cliente_
                 mostrarContacto();
                 break;
             case 5:
-                mostrarNotificaciones(db, idUsuario);
-                menuNoti(db, idUsuario);
+                mostrarNotificaciones(db, idUsuario, cliente_fd);
+                menuNoti(db, idUsuario, cliente_fd);
                 break;
             case 6:
-                send(cliente_fd, "Saliendo del programa...\n", 26, 0);
+                send(cliente_fd, "Saliendo del menu DeustoMotors...\n", 36, 0);
                 break;
             default:
                 send(cliente_fd, "Opcion no valida.\n", 19, 0);

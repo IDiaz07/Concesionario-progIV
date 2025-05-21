@@ -119,32 +119,6 @@ void listarVehiculos(sqlite3 *db, SOCKET cliente_fd) {
     sqlite3_finalize(stmt);
 }
 
-// -------------------- MANEJO DE NOTIFICACIONES --------------------
-void mostrarNotificaciones(sqlite3 *db, int idUsuario, SOCKET cliente_fd) {
-    sqlite3_stmt *stmt;
-    const char *sql = "SELECT id, mensaje FROM notificaciones WHERE id_usuario = ?;";
-    char buffer[512];
-
-    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
-    if (rc != SQLITE_OK) {
-        send(cliente_fd, "Error|No se pudo obtener notificaciones|", 40, 0);
-        return;
-    }
-
-    sqlite3_bind_int(stmt, 1, idUsuario);
-    send(cliente_fd, "InicioNotificaciones|", 22, 0);
-
-    while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
-        int id = sqlite3_column_int(stmt, 0);
-        const char *mensaje = (const char *)sqlite3_column_text(stmt, 1);
-        snprintf(buffer, sizeof(buffer), "ID:%d|Mensaje:%s\n", id, mensaje);
-        send(cliente_fd, buffer, strlen(buffer), 0);
-    }
-
-    send(cliente_fd, "FinNotificaciones|", 18, 0);
-    sqlite3_finalize(stmt);
-}
-
 // -------------------- FUNCIONES AUXILIARES --------------------
 int buscarIDUsuario(sqlite3 *db, const char *nombre_usuario, SOCKET cliente_fd) {
     sqlite3_stmt *stmt;
@@ -245,22 +219,44 @@ int vehiculoExiste(sqlite3 *db, const char *marca, const char *modelo, int anio)
     return count;
 }
 
-int mostrarPlantilla(sqlite3 *db) {
+int mostrarPlantilla(sqlite3 *db, SOCKET cliente_fd) {
     sqlite3_stmt *stmt;
-    const char *sql = "SELECT marca, modelo, anio, precio_sugerido FROM plantilla";
-    if (sqlite3_prepare_v2(db, sql, -1, &stmt, 0) != SQLITE_OK) return -1;
+    const char *sql = "SELECT nombre, cargo, salario FROM plantilla;";
+    char fila[256];
+    char bufferGrande[4096] = {0};  // Para acumular todos los resultados
 
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, 0) != SQLITE_OK) {
+        const char *err = sqlite3_errmsg(db);
+        snprintf(fila, sizeof(fila), "Error al consultar la plantilla: %s\n", err);
+        send(cliente_fd, fila, strlen(fila), 0);
+        return -1;
+    }
+
+    int hayResultados = 0;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
-        printf("Marca: %s, Modelo: %s, Año: %d, Precio: %.2f\n",
-               sqlite3_column_text(stmt, 0),
-               sqlite3_column_text(stmt, 1),
-               sqlite3_column_int(stmt, 2),
-               sqlite3_column_double(stmt, 3));
+        const char *nombre = (const char *)sqlite3_column_text(stmt, 0);
+        const char *cargo = (const char *)sqlite3_column_text(stmt, 1);
+        double salario = sqlite3_column_double(stmt, 2);
+
+        snprintf(fila, sizeof(fila), "Nombre: %s, Cargo: %s, Salario: %.2f\n", nombre, cargo, salario);
+        strncat(bufferGrande, fila, sizeof(bufferGrande) - strlen(bufferGrande) - 1);
+        hayResultados = 1;
     }
 
     sqlite3_finalize(stmt);
+
+    if (!hayResultados) {
+        strncat(bufferGrande, "No hay empleados en la plantilla.\n", sizeof(bufferGrande) - strlen(bufferGrande) - 1);
+    }
+
+    strncat(bufferGrande, "FIN_PLANTILLA\n", sizeof(bufferGrande) - strlen(bufferGrande) - 1);
+
+    send(cliente_fd, bufferGrande, strlen(bufferGrande), 0);
+
     return SQLITE_OK;
 }
+
+
 
 float obtenerPrecioVehiculo(sqlite3 *db, const char *marca, const char *modelo) {
     sqlite3_stmt *stmt;
@@ -316,20 +312,28 @@ void eliminarTodasLasNotificaciones(sqlite3 *db, int id_usuario, SOCKET cliente_
     
     int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
     if (rc != SQLITE_OK) {
-        send(cliente_fd, "Error|Fallo al preparar eliminación masiva|", 43, 0);
+        const char *errMsg = sqlite3_errmsg(db);
+        char msg[256];
+        snprintf(msg, sizeof(msg), "Error|Preparación fallida: %s\n", errMsg);
+        send(cliente_fd, msg, strlen(msg), 0);
         return;
     }
 
     sqlite3_bind_int(stmt, 1, id_usuario);
     rc = sqlite3_step(stmt);
-    sqlite3_finalize(stmt);
 
     if (rc != SQLITE_DONE) {
-        send(cliente_fd, "Error|Fallo al eliminar notificaciones|", 38, 0);
+        const char *errMsg = sqlite3_errmsg(db);
+        char msg[256];
+        snprintf(msg, sizeof(msg), "Error|Fallo al eliminar: %s\n", errMsg);
+        send(cliente_fd, msg, strlen(msg), 0);
     } else {
-        send(cliente_fd, "Exito|Notificaciones eliminadas|", 32, 0);
+        send(cliente_fd, "Exito|Notificaciones eliminadas\n", 33, 0);
     }
+
+    sqlite3_finalize(stmt);
 }
+
 
 void eliminarNotificacionPorID(sqlite3 *db, int id_usuario, int id_notificacion, SOCKET cliente_fd) {
     sqlite3_stmt *stmt;

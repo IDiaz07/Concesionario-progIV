@@ -14,7 +14,6 @@ void FiltrarMarca(FILE* archivo, SOCKET cliente_fd);
 
 void cargarVehiculosDesdeArchivo(sqlite3 *db, FILE *archivo, SOCKET cliente_fd);
 void cargarPlantillaDesdeArchivo(sqlite3 *db, const char *nombreArchivo);
-void cargarPlantillaDesdeArchivo(sqlite3 *db, const char *nombreArchivo);
 
 
 #endif

@@ -129,10 +129,10 @@ void cargarPlantillaDesdeArchivo(sqlite3 *db, const char *nombreArchivo) {
 
     char linea[256];
     while (fgets(linea, sizeof(linea), archivo)) {
-        char nombre[100], cargo[50], salarioStr[20];
-        double salario;
+        char nombre[100] = {0}, cargo[50] = {0}, salarioStr[20] = {0};
+        double salario = 0.0;
 
-        // Separar los datos con strtok
+        // Parsear línea
         char *split = strtok(linea, ";\n");
         if (split) strcpy(nombre, split);
 
@@ -145,23 +145,38 @@ void cargarPlantillaDesdeArchivo(sqlite3 *db, const char *nombreArchivo) {
             salario = atof(salarioStr);
         }
 
-        // Generar la consulta SQL
-        char sql[256];
-        snprintf(sql, sizeof(sql),
+        // Verificar si ya existe la persona (por nombre)
+        sqlite3_stmt *stmt;
+        const char *sql_check = "SELECT COUNT(*) FROM plantilla WHERE nombre = ?;";
+        if (sqlite3_prepare_v2(db, sql_check, -1, &stmt, NULL) == SQLITE_OK) {
+            sqlite3_bind_text(stmt, 1, nombre, -1, SQLITE_STATIC);
+            if (sqlite3_step(stmt) == SQLITE_ROW) {
+                int existe = sqlite3_column_int(stmt, 0);
+                sqlite3_finalize(stmt);
+                if (existe > 0) {
+                    printf("Empleado '%s' ya existe. Se omite.\n", nombre);
+                    continue;
+                }
+            } else {
+                sqlite3_finalize(stmt);
+            }
+        }
+
+        // Insertar si no existe
+        char sqlInsert[256];
+        snprintf(sqlInsert, sizeof(sqlInsert),
                  "INSERT INTO plantilla (nombre, cargo, salario) VALUES ('%s', '%s', %.2f);",
                  nombre, cargo, salario);
 
-        // Imprimir la consulta para depuración
-        printf("Ejecutando SQL: %s\n", sql);
-
-        // Ejecutar la consulta
         char *errMsg = 0;
-        if (sqlite3_exec(db, sql, 0, 0, &errMsg) != SQLITE_OK) {
+        if (sqlite3_exec(db, sqlInsert, 0, 0, &errMsg) != SQLITE_OK) {
             printf("Error al insertar datos: %s\n", errMsg);
             sqlite3_free(errMsg);
+        } else {
+            printf("Empleado '%s' insertado correctamente.\n", nombre);
         }
     }
 
     fclose(archivo);
-    printf("Datos de plantilla cargados correctamente en la base de datos.\n");
+    printf("Carga de plantilla finalizada.\n");
 }

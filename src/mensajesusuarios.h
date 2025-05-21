@@ -3,6 +3,6 @@
 
 #include "sqlite3.h"
 
-void enviarMensajeAUsuarios(sqlite3 *db);
+void enviarMensajeAUsuarios(sqlite3 *db, SOCKET cliente_fd);
 
 #endif
