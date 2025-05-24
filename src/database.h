@@ -27,6 +27,7 @@ int crearTablaUsuarios(sqlite3* db);
 int crearTablaVentas(sqlite3 *db);
 int registrarVenta(sqlite3 *db,int id_usuario, int id_vehiculo, int precio_final);
 int crearTablaVehiculos(sqlite3 *db);
+int crearTablaCitas(sqlite3 *db);
 
 int vehiculoExiste(sqlite3 *db, const char *marca, const char *modelo, int anio);
 

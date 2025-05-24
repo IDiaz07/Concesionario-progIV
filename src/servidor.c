@@ -13,6 +13,13 @@
 #define PUERTO 12345
 #define BUFFER_SIZE 1024
 
+int esCriterioValido(const char *criterio) {
+    return strcmp(criterio, "marca") == 0 ||
+           strcmp(criterio, "modelo") == 0 ||
+           strcmp(criterio, "anio") == 0 ||
+           strcmp(criterio, "precio") == 0;
+}
+
 void manejarCliente(SOCKET cliente_fd, sqlite3* db) {
     char buffer[BUFFER_SIZE];
     char nombreUsuario[50];
@@ -34,18 +41,19 @@ void manejarCliente(SOCKET cliente_fd, sqlite3* db) {
                 if (rc == SQLITE_OK) {
                     send(cliente_fd, "Exito|Usuario registrado\n", 24, 0);
                 } else {
-                send(cliente_fd, "Error|No se pudo registrar usuario\n", 35, 0);
-            }
+                    send(cliente_fd, "Error|No se pudo registrar usuario\n", 35, 0);
+                }
             } else {
                 send(cliente_fd, "Error|Formato REGISTRAR incorrecto\n", 35, 0);
             }
+
         } else if (strncmp(buffer, "LOGIN", 5) == 0) {
             char user[50], pass[50];
             int args = sscanf(buffer, "LOGIN %s %s", user, pass);
             if (args == 2) {
                 int rc = verificarUsuario(db, user, pass, cliente_fd);
                 if (rc == SQLITE_OK) {
-                    int idUsuario = buscarIDUsuario(db, user, cliente_fd); // extrae ID del usuario
+                    int idUsuario = buscarIDUsuario(db, user, cliente_fd);
                     if (idUsuario != -1) {
                         send(cliente_fd, "Exito|Login correcto|\n", 24, 0);
                         Sleep(100);
@@ -60,9 +68,49 @@ void manejarCliente(SOCKET cliente_fd, sqlite3* db) {
                     send(cliente_fd, "Error|Credenciales incorrectas\n", 33, 0);
                 }
             }
+
+        } else if (strncmp(buffer, "FILTRAR;", 8) == 0) {
+            char *criterio = strtok(buffer + 8, ";");
+            char *valor = strtok(NULL, "\n");
+
+            if (criterio && valor && esCriterioValido(criterio)) {
+                char sql[256];
+                sqlite3_stmt *stmt;
+
+                snprintf(sql, sizeof(sql),
+                    "SELECT id, marca, modelo, anio, precio FROM vehiculos WHERE %s = ?", criterio);
+
+                if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) == SQLITE_OK) {
+                    sqlite3_bind_text(stmt, 1, valor, -1, SQLITE_STATIC);
+
+                    while (sqlite3_step(stmt) == SQLITE_ROW) {
+                        int id = sqlite3_column_int(stmt, 0);
+                        const char *marca = (const char *)sqlite3_column_text(stmt, 1);
+                        const char *modelo = (const char *)sqlite3_column_text(stmt, 2);
+                        int anio = sqlite3_column_int(stmt, 3);
+                        double precio = sqlite3_column_double(stmt, 4);
+
+                        char resultado[256];
+                        snprintf(resultado, sizeof(resultado),
+                                 "ID: %d | Marca: %s | Modelo: %s | Año: %d | Precio: %.2f\n",
+                                 id, marca, modelo, anio, precio);
+                        send(cliente_fd, resultado, strlen(resultado), 0);
+                    }
+
+                    sqlite3_finalize(stmt);
+                } else {
+                    send(cliente_fd, "Error al preparar consulta SQL\n", 32, 0);
+                }
+            } else {
+                send(cliente_fd, "Error|Criterio invalido o mal formado\n", 38, 0);
+            }
+
+            send(cliente_fd, "FIN\n", 4, 0);
+
         } else if (strncmp(buffer, "SALIR", 5) == 0) {
             send(cliente_fd, "Desconectando...\n", 18, 0);
             break;
+
         } else {
             send(cliente_fd, "Error|Comando no reconocido\n", 28, 0);
         }

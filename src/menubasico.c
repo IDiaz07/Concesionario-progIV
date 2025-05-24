@@ -6,12 +6,15 @@
 #include "database.h"
 #include "contacto.h"
 #include "notificaciones.h"
+#include "pruebamanejo.h"
 
 void menuBasico(sqlite3 *db, const char *usuario, int idUsuario, SOCKET cliente_fd) {
     FILE* archivo;
     inicializarArchivo(&archivo, cliente_fd);
     char buffer[256];
     int opcionConcesionario;
+
+
 
     do {
         // Enviar menú al cliente
@@ -50,7 +53,8 @@ void menuBasico(sqlite3 *db, const char *usuario, int idUsuario, SOCKET cliente_
                 if (subopcion == 1) {
                     mostrarVehiculos(archivo, cliente_fd);
                 } else if (subopcion == 2) {
-                    filtrarVehiculos(archivo);
+                    filtrarVehiculos(db, cliente_fd);
+
                 } else {
                     const char *msg = "Opcion no valida.\n";
                     send(cliente_fd, msg, strlen(msg), 0);
@@ -61,10 +65,10 @@ void menuBasico(sqlite3 *db, const char *usuario, int idUsuario, SOCKET cliente_
                 MenuServicios(db, usuario, cliente_fd);
                 break;
             case 3:
-                send(cliente_fd, "Prueba de manejo no implementada.\n", 34, 0);
+                 pruebaManejo(db, cliente_fd, usuario);
                 break;
             case 4:
-                mostrarContacto();
+                mostrarContacto(cliente_fd);
                 break;
             case 5:
                 mostrarNotificaciones(db, idUsuario, cliente_fd);

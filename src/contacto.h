@@ -1,6 +1,8 @@
 #ifndef CONTACTO_H
 #define CONTACTO_H
 
-void mostrarContacto();
+#include <winsock2.h>
+
+void mostrarContacto(SOCKET cliente_fd);
 
 #endif

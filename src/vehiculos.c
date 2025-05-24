@@ -67,33 +67,88 @@ void ComprarVehiculo(sqlite3 *db, SOCKET cliente_fd){
   int id_usuario=  buscarIDUsuario(db, nombreUsuario, cliente_fd);
   int id_vehiculo= buscarIDVehiculo(db,vehiculoComprado.marca,vehiculoComprado.modelo,vehiculoComprado.anio);
   registrarVenta(db,id_usuario,id_vehiculo,precio);
-
-    
-    
-    
-
 }
-void filtrarVehiculos(FILE* archivo) {
-    char criterio[50];
-    char valor[50];
+
+
+void filtrarVehiculos(sqlite3 *db, SOCKET cliente_fd) {
+char criterio[50], valor[50], buffer[256];
+
+    // Pedir criterio
+    const char *msg1 = "\nFiltrar vehiculos por -> marca, modelo, anio o precio: ";
+    send(cliente_fd, msg1, strlen(msg1), 0);
+    int n1 = recv(cliente_fd, buffer, sizeof(buffer) - 1, 0);
+    if (n1 <= 0) return;
+    buffer[n1] = '\0';
+    buffer[strcspn(buffer, "\r\n")] = '\0';
+    strcpy(criterio, buffer);
+
+    // Pedir valor
+    const char *msg2 = "Ingrese el valor a buscar: ";
+    send(cliente_fd, msg2, strlen(msg2), 0);
+    int n2 = recv(cliente_fd, buffer, sizeof(buffer) - 1, 0);
+    if (n2 <= 0) return;
+    buffer[n2] = '\0';
+    buffer[strcspn(buffer, "\r\n")] = '\0';
+    strcpy(valor, buffer);
+
+    // Buscar en archivo
+    FILE *archivo = fopen("vehiculos.txt", "r");
+    if (!archivo) {
+        send(cliente_fd, "Error al abrir el archivo.\n", 28, 0);
+        send(cliente_fd, "FIN\n", 4, 0);
+        return;
+    }
+
+    // Enviar encabezado
+    send(cliente_fd, "\nVehiculos encontrados:\n", 25, 0);
+
     char linea[256];
-    Vehiculo vehiculo;
+    int encontrados = 0;
+    char *token;
+    while (fgets(linea, sizeof(linea), archivo)) {
+        char *marca, *modelo, *anio_str, *precio_str;
+        int anio;
+        float precio;
 
-    printf("\nFiltrar vehculos por: marca, modelo, anio: ");
-    scanf("%s", criterio);
-    printf("Ingrese el valor a buscar: ");
-    scanf("%s", valor);
+        // Separar por ;
+        token = strtok(linea, ";\n");
+        if (!token) continue;
+        marca = token;
 
-    rewind(archivo);
-    printf("\nVehiculos encontrados:\n");
-    while (fgets(linea, sizeof(linea), archivo) != NULL) {
-        sscanf(linea, "%[^;];%[^;];%d;%f", vehiculo.marca, vehiculo.modelo, &vehiculo.anio, &vehiculo.precio);
+        token = strtok(NULL, ";\n");
+        if (!token) continue;
+        modelo = token;
 
-        if ((strcmp(criterio, "marca") == 0 && strcmp(vehiculo.marca, valor) == 0) ||
-            (strcmp(criterio, "modelo") == 0 && strcmp(vehiculo.modelo, valor) == 0) ||
-            (strcmp(criterio, "anio") == 0 && atoi(valor) == vehiculo.anio) ||
-            (strcmp(criterio, "precio") == 0 && atof(valor) == vehiculo.precio)) {
-            printf("%s %s %d %.2f\n", vehiculo.marca, vehiculo.modelo, vehiculo.anio, vehiculo.precio);
+        token = strtok(NULL, ";\n");
+        if (!token) continue;
+        anio_str = token;
+        anio = atoi(anio_str);
+
+        token = strtok(NULL, ";\n");
+        if (!token) continue;
+        precio_str = token;
+        precio = atof(precio_str);
+
+        int match = 0;
+        if (strcmp(criterio, "marca") == 0 && _stricmp(marca, valor) == 0) match = 1;
+        else if (strcmp(criterio, "modelo") == 0 && _stricmp(modelo, valor) == 0) match = 1;
+        else if (strcmp(criterio, "anio") == 0 && atoi(valor) == anio) match = 1;
+        else if (strcmp(criterio, "precio") == 0 && atof(valor) == precio) match = 1;
+
+        if (match) {
+            snprintf(buffer, sizeof(buffer), "%s %s %d $%.2f\n", marca, modelo, anio, precio);
+            send(cliente_fd, buffer, strlen(buffer), 0);
+            encontrados++;
         }
     }
+
+    if (encontrados == 0) {
+        send(cliente_fd, "No se encontraron vehiculos.\n", 30, 0);
+    }
+
+    fclose(archivo);
+    send(cliente_fd, "FIN\n", 4, 0);
 }
+
+
+

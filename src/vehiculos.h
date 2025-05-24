@@ -16,7 +16,9 @@ typedef struct {
 void anadirVehiculo(sqlite3 *db, FILE* archivo, SOCKET cliente_fd);
 
 
-void filtrarVehiculos(FILE* archivo);
+void filtrarVehiculos(sqlite3 *db, SOCKET cliente_fd);
+
+
 
 void ComprarVehiculo(sqlite3 *db, SOCKET cliente_fd);
 #endif

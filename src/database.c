@@ -154,6 +154,7 @@ int crearTablas(sqlite3 *db) {
     if (crearTablaVentas(db) != SQLITE_OK) return -1;
     if (crearTablaPlantilla(db) != SQLITE_OK) return -1;
     if (crearTablaNotificaciones(db) != SQLITE_OK) return -1;
+    if (crearTablaCitas(db) != SQLITE_OK) return -1;
     return SQLITE_OK;
 }
 
@@ -187,6 +188,19 @@ int crearTablaNotificaciones(sqlite3 *db) {
     char *errMsg;
     return sqlite3_exec(db, sql, 0, 0, &errMsg);
 }
+
+int crearTablaCitas(sqlite3 *db) {
+    const char *sql = "CREATE TABLE IF NOT EXISTS citas (id INTEGER PRIMARY KEY AUTOINCREMENT, usuario TEXT, vehiculo TEXT, fecha TEXT, hora TEXT);";
+
+    char *errMsg = 0;
+    int rc = sqlite3_exec(db, sql, 0, 0, &errMsg);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Error al crear la tabla de citas: %s\n", errMsg);
+        sqlite3_free(errMsg);
+    }
+    return rc;
+}
+
 
 
 //-------------------- CONSULTA Y OPERACIÓN --------------------
