@@ -68,9 +68,6 @@ void mantenimientoYReparacionRemoto(sqlite3 *db, SOCKET cliente_fd) {
     send(cliente_fd, "Funcion mantenimiento no implementada.\n", 40, 0);
 }
 
-void ComprarVehiculoRemoto(sqlite3 *db, SOCKET cliente_fd) {
-    send(cliente_fd, "Funcion compra no implementada.\n", 34, 0);
-}
 
 // Garantías por socket
 void garantiasRemoto(SOCKET cliente_fd) {

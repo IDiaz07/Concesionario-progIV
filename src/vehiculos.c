@@ -47,27 +47,67 @@ void anadirVehiculo(sqlite3 *db, FILE *archivo, SOCKET cliente_fd) {
 }
 
 
-void ComprarVehiculo(sqlite3 *db, SOCKET cliente_fd){
+void ComprarVehiculoRemoto(sqlite3 *db, SOCKET cliente_fd) {
     Vehiculo vehiculoComprado;
+    char buffer[256];
     char nombreUsuario[50];
-    printf("Introduce la marca del vehiculo: ");
-    scanf("%s", vehiculoComprado.marca);
+    int bytes;
 
-    printf("Introduce el modelo del vehiculo: ");
-    scanf("%s", vehiculoComprado.modelo);
+    // Pedir marca
+    send(cliente_fd, "Introduce la marca del vehiculo: ", 34, 0);
+    bytes = recv(cliente_fd, buffer, sizeof(buffer) - 1, 0);
+    if (bytes <= 0) return;
+    buffer[bytes] = '\0';
+    buffer[strcspn(buffer, "\r\n")] = '\0';
+    strcpy(vehiculoComprado.marca, buffer);
 
-    printf("Introduce el anio del vehiculo: ");
-    scanf("%d", &vehiculoComprado.anio);
+    // Pedir modelo
+    send(cliente_fd, "Introduce el modelo del vehiculo: ", 35, 0);
+    bytes = recv(cliente_fd, buffer, sizeof(buffer) - 1, 0);
+    if (bytes <= 0) return;
+    buffer[bytes] = '\0';
+    buffer[strcspn(buffer, "\r\n")] = '\0';
+    strcpy(vehiculoComprado.modelo, buffer);
 
-    
- float precio =obtenerPrecioVehiculo(db,vehiculoComprado.marca,vehiculoComprado.modelo);
-    
-    printf("Introduzca su nombre de usuario: ");
-    scanf("%s", nombreUsuario);
-  int id_usuario=  buscarIDUsuario(db, nombreUsuario, cliente_fd);
-  int id_vehiculo= buscarIDVehiculo(db,vehiculoComprado.marca,vehiculoComprado.modelo,vehiculoComprado.anio);
-  registrarVenta(db,id_usuario,id_vehiculo,precio);
+    // Pedir año
+    send(cliente_fd, "Introduce el anio del vehiculo: ", 33, 0);
+    bytes = recv(cliente_fd, buffer, sizeof(buffer) - 1, 0);
+    if (bytes <= 0) return;
+    buffer[bytes] = '\0';
+    vehiculoComprado.anio = atoi(buffer);
+
+    // Obtener precio
+    float precio = obtenerPrecioVehiculo(db, vehiculoComprado.marca, vehiculoComprado.modelo);
+    if (precio <= 0) {
+        send(cliente_fd, "Vehiculo no encontrado o precio invalido.\n", 42, 0);
+        return;
+    }
+
+    // Pedir nombre de usuario
+    send(cliente_fd, "Introduzca su nombre de usuario: ", 34, 0);
+    bytes = recv(cliente_fd, buffer, sizeof(buffer) - 1, 0);
+    if (bytes <= 0) return;
+    buffer[bytes] = '\0';
+    buffer[strcspn(buffer, "\r\n")] = '\0';
+    strcpy(nombreUsuario, buffer);
+
+    // Obtener IDs y registrar venta
+    int id_usuario = buscarIDUsuario(db, nombreUsuario, cliente_fd);
+    int id_vehiculo = buscarIDVehiculo(db, vehiculoComprado.marca, vehiculoComprado.modelo, vehiculoComprado.anio);
+
+    if (id_usuario == -1 || id_vehiculo == -1) {
+        send(cliente_fd, "Error: Usuario o vehiculo no encontrado.\n", 41, 0);
+        return;
+    }
+
+    registrarVenta(db, id_usuario, id_vehiculo, precio);
+
+    // Confirmación
+    char msg[128];
+    snprintf(msg, sizeof(msg), "Compra registrada con éxito. Precio: $%.2f\n", precio);
+    send(cliente_fd, msg, strlen(msg), 0);
 }
+
 
 
 void filtrarVehiculos(sqlite3 *db, SOCKET cliente_fd) {

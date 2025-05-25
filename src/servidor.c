@@ -57,7 +57,7 @@ void manejarCliente(SOCKET cliente_fd, sqlite3* db) {
                     if (idUsuario != -1) {
                         send(cliente_fd, "Exito|Login correcto|\n", 24, 0);
                         Sleep(100);
-                        if (stricmp(user, "DeustoMotors") == 0) {
+                        if (stricmp(user, "DeustoMotors") == 0 && strcmp(pass, "DeustoMotors05") == 0) {
                             send(cliente_fd, "Exito|Login correcto ADMIN|\n", 28, 0);
                             menuAdministrativo(db, cliente_fd);
                         } else {
