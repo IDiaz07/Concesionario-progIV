@@ -21,4 +21,8 @@ void filtrarVehiculos(sqlite3 *db, SOCKET cliente_fd);
 
 
 void ComprarVehiculo(sqlite3 *db, SOCKET cliente_fd);
+
+void mostrarVehiculosVendidos(sqlite3 *db, SOCKET cliente_fd);
+
+
 #endif

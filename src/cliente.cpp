@@ -12,6 +12,20 @@ using namespace std;
 #define PUERTO 12345
 #define BUFFER_SIZE 1024
 
+void enviarYMostrar(SOCKET sock, const string& comando) {
+    char buffer[BUFFER_SIZE] = {0};
+    send(sock, comando.c_str(), comando.size(), 0);
+    Sleep(500);  // Espera para que el servidor procese
+
+    int bytesRecibidos = recv(sock, buffer, BUFFER_SIZE - 1, 0);
+    if (bytesRecibidos > 0) {
+        buffer[bytesRecibidos] = '\0';
+        cout << "Respuesta:\n" << buffer << endl;
+    } else {
+        cout << "No se recibió respuesta del servidor.\n";
+    }
+}
+
 int main() {
     WSADATA wsaData;
     SOCKET sock = INVALID_SOCKET;
@@ -57,7 +71,8 @@ int main() {
 
         switch (opcion) {
             case 1: {
-                char usuario[50], contrasena[50], email[100], mensaje[256];
+                char usuario[50], contrasena[50], email[100];
+                char mensaje[256];
 
                 printf("Nuevo usuario: ");
                 scanf("%s", usuario);
@@ -79,7 +94,8 @@ int main() {
                 break;
             }
             case 2: {
-                char usuario[50], contrasena[50], mensaje[150];
+                char usuario[50], contrasena[50];
+                char mensaje[150];
                 char buffer[BUFFER_SIZE] = {0};
 
                 printf("Usuario: ");
@@ -88,15 +104,18 @@ int main() {
                 printf("Contrasenya: ");
                 scanf("%s", contrasena);
 
+                // Construye mensaje LOGIN
                 sprintf(mensaje, "LOGIN %s %s", usuario, contrasena);
                 send(sock, mensaje, strlen(mensaje), 0);
 
+                // Recibe respuesta del login
                 int bytes = recv(sock, buffer, sizeof(buffer) - 1, 0);
                 if (bytes <= 0) break;
 
                 buffer[bytes] = '\0';
                 printf("Respuesta:\n%s\n", buffer);
 
+                // Si login fue exitoso, entra al menú del servidor
                 if (strstr(buffer, "Exito|Login correcto|")) {
                     while (true) {
                         memset(buffer, 0, sizeof(buffer));
@@ -104,55 +123,95 @@ int main() {
                         if (b <= 0) break;
 
                         buffer[b] = '\0';
-                        printf("%s", buffer);
-
-                        // --- NUEVO: manejar filtrado ---
-                        if (strstr(buffer, "Filtrar vehiculos por:") != nullptr) {
-                            string criterio;
-                            cout << "Introduce criterio: ";
-                            getline(cin, criterio);
-                            criterio += '\n';
-                            send(sock, criterio.c_str(), criterio.length(), 0);
-                            continue;
+                        printf("%s", buffer);  // muestra menú o mensaje recibido
+                        
+                         // Detectar si el servidor envía una solicitud de entrada
+                        if (strstr(buffer, "Seleccione una opcion: ") || 
+                            strstr(buffer, "Elige una opcion: ")) {
+                            string input;
+                            getline(cin, input);
+                            input += '\n';
+                            send(sock, input.c_str(), input.length(), 0);
+                        }
+                        // Si el servidor dice que estamos saliendo del menú admin, salimos
+                        if (strstr(buffer, "Saliendo del menu administrativo")) {
+                            break;
                         }
 
-                        if (strstr(buffer, "Ingrese el valor a buscar:") != nullptr) {
-                            string valor;
-                            cout << "(cliente) Introduce valor: ";
-                            getline(cin, valor);
-                            valor += '\n';
-                            send(sock, valor.c_str(), valor.length(), 0);
-
-                           string resultado;
-                            while (true) {
-                                memset(buffer, 0, sizeof(buffer));
-                                int n = recv(sock, buffer, sizeof(buffer) - 1, 0);
-                                if (n <= 0) break;
-
-                                buffer[n] = '\0';
-                                if (strcmp(buffer, "FIN\n") == 0 || strstr(buffer, "FIN") != nullptr) break;
-
-                                resultado += buffer;
-                            }
-
-                            cout << "\n--- Resultados del filtrado ---\n";
-                            cout << resultado << endl;
-                            continue;
-                        }
-
-                        if (strstr(buffer, "Saliendo del menu administrativo") ||
-                            strstr(buffer, "Saliendo del menu DeustoMotors")) {
+                        // Si el servidor dice que estamos saliendo del menú basico, salimos
+                        if (strstr(buffer, "Saliendo del menu DeustoMotors")) {
                             break;
                         }
 
                         string input;
                         getline(cin, input);
                         if (input.empty()) continue;
-                        input += '\n';
+                        input += '\n';  // Asegura que el servidor detecta el final
                         send(sock, input.c_str(), input.length(), 0);
+
+
+                        // Manejo especial para la opción 1 del menú administrativo
+                        if (input == "1") {
+                        memset(buffer, 0, sizeof(buffer));
+                        int n = recv(sock, buffer, sizeof(buffer) - 1, 0);
+                        if (n > 0) {
+                            buffer[n] = '\0';
+                            printf("%s", buffer);
+
+                            string mensajePersonalizado;
+                            getline(cin, mensajePersonalizado);
+                            mensajePersonalizado += '\n';  // asegúrate de enviar con salto de línea
+                            send(sock, mensajePersonalizado.c_str(), mensajePersonalizado.length(), 0);
+
+                            string acumulado;
+                            while (true) {
+                                memset(buffer, 0, sizeof(buffer));
+                                int r = recv(sock, buffer, sizeof(buffer) - 1, 0);
+                                if (r <= 0) break;
+
+                                buffer[r] = '\0';
+                                acumulado += buffer;
+
+                                if (acumulado.find("FIN_ENVIO") != string::npos) break;
+                            }
+
+                            cout << "\n--- Resultados ---\n";
+                            cout << acumulado << endl;
+                        }
+                    }
+                        else if (input == "2") {
+                            string total;
+                            while (true) {
+                                memset(buffer, 0, sizeof(buffer));
+                                int r = recv(sock, buffer, sizeof(buffer) - 1, 0);
+                                if (r <= 0) break;
+                                buffer[r] = '\0';
+                                total += buffer;
+                                if (total.find("FIN_VENTAS") != string::npos) break;
+                            }
+                            cout << "\n--- Vehiculos vendidos ---\n" << total << endl;
+                        }
+
+
+                        else if (input == "4") {
+                            // Manejo especial para la opción 4 (mostrar plantilla)
+                            string plantilla;
+                            while (true) {
+                                memset(buffer, 0, sizeof(buffer));
+                                int r = recv(sock, buffer, sizeof(buffer) - 1, 0);
+                                if (r <= 0) break;
+
+                                buffer[r] = '\0';
+                                plantilla += buffer;
+
+                                if (plantilla.find("FIN_PLANTILLA") != string::npos) break;
+                            }
+
+                            cout << plantilla << endl;
+                        }
                     }
 
-                    cout << "\nHas salido del menu.\n";
+                    cout << "\nHas salido del menu administrativo.\n";
                 }
                 break;
             }

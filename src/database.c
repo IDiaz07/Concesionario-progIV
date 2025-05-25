@@ -204,18 +204,33 @@ int crearTablaCitas(sqlite3 *db) {
 
 
 //-------------------- CONSULTA Y OPERACIÓN --------------------
-int registrarVenta(sqlite3 *db, int id_usuario, int id_vehiculo, int precio_final) {
+int registrarVenta(sqlite3 *db, int id_usuario, int id_vehiculo, float precio_final) {
     sqlite3_stmt *stmt;
-    const char *sql = "INSERT INTO ventas (id_usuario, id_vehiculo, precio_final) VALUES (?, ?, ?)";
-    if (sqlite3_prepare_v2(db, sql, -1, &stmt, 0) != SQLITE_OK) return -1;
+    const char *sql = "INSERT INTO ventas (id_usuario, id_vehiculo, precio_final) VALUES (?, ?, ?);";
 
-    sqlite3_bind_int(stmt, 1, id_usuario);
-    sqlite3_bind_int(stmt, 2, id_vehiculo);
-    sqlite3_bind_int(stmt, 3, precio_final);
+    // Preparar la sentencia SQL
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Error al preparar la consulta: %s\n", sqlite3_errmsg(db));
+        return rc;
+    }
 
-    int rc = sqlite3_step(stmt);
+    // Vincular parámetros
+    sqlite3_bind_int(stmt, 1, id_usuario);      // ID usuario (INTEGER)
+    sqlite3_bind_int(stmt, 2, id_vehiculo);     // ID vehículo (INTEGER)
+    sqlite3_bind_double(stmt, 3, precio_final); // Precio final (REAL)
+
+    // Ejecutar la consulta
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        fprintf(stderr, "Error al ejecutar la consulta: %s\n", sqlite3_errmsg(db));
+        sqlite3_finalize(stmt);
+        return rc;
+    }
+
+    // Liberar recursos
     sqlite3_finalize(stmt);
-    return (rc == SQLITE_DONE) ? SQLITE_OK : rc;
+    return SQLITE_OK; // Éxito
 }
 
 int vehiculoExiste(sqlite3 *db, const char *marca, const char *modelo, int anio) {

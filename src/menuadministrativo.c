@@ -38,7 +38,7 @@ void menuAdministrativo(sqlite3 *db, SOCKET cliente_fd) {
                 enviarMensajeAUsuarios(db, cliente_fd);  // Si imprime por consola, adaptalo también
                 break;
             case 2:
-                send(cliente_fd, "Funcion ver vehiculos vendidos no implementada.\n", 49, 0);
+                mostrarVehiculosVendidos(db, cliente_fd);
                 break;
             case 3:
                 anadirVehiculo(db, archivo, cliente_fd);  // ya espera cliente_fd

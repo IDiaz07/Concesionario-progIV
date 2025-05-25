@@ -189,6 +189,52 @@ char criterio[50], valor[50], buffer[256];
     fclose(archivo);
     send(cliente_fd, "FIN\n", 4, 0);
 }
+void mostrarVehiculosVendidos(sqlite3 *db, SOCKET cliente_fd) {
+    const char *sql =
+        "SELECT  u.nombre_usuario, v.marca, v.modelo, v.anio, ve.precio_final "
+        "FROM ventas ve "
+        "JOIN usuarios u ON ve.id_usuario = u.id "
+        "JOIN vehiculos v ON ve.id_vehiculo = v.id "
+        "ORDER BY  nombre_usuario;";
+
+    sqlite3_stmt *stmt;
+    char buffer[512];
+
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    if (rc != SQLITE_OK) {
+        send(cliente_fd, "Error al preparar consulta de ventas\n", 38, 0);
+        return;
+    }
+
+    char usuarioAnterior[100] = "";
+    int primerUsuario = 1;
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        const char *nombre = (const char *)sqlite3_column_text(stmt, 0);
+        const char *marca  = (const char *)sqlite3_column_text(stmt, 1);
+        const char *modelo = (const char *)sqlite3_column_text(stmt, 2);
+        int anio           = sqlite3_column_int(stmt, 3);
+        float precio       = (float)sqlite3_column_double(stmt, 4);
+
+        if (strcmp(nombre, usuarioAnterior) != 0) {
+            if (!primerUsuario) {
+                send(cliente_fd, "\n", 1, 0);
+            }
+            snprintf(buffer, sizeof(buffer), "Nombre de usuario: %s\n", nombre);
+            send(cliente_fd, buffer, strlen(buffer), 0);
+            strcpy(usuarioAnterior, nombre);
+            primerUsuario = 0;
+        }
+
+        snprintf(buffer, sizeof(buffer), " - %s %s %d $%.2f\n", marca, modelo, anio, precio);
+        send(cliente_fd, buffer, strlen(buffer), 0);
+    }
+
+    sqlite3_finalize(stmt);
+
+    send(cliente_fd, "FIN_VENTAS\n", 11, 0);
+}
+
 
 
 

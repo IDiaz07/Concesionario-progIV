@@ -25,7 +25,7 @@ int buscarIDUsuario(sqlite3 *db, const char *nombre_usuario, SOCKET cliente_fd);
 int crearTablas(sqlite3 *db);
 int crearTablaUsuarios(sqlite3* db);
 int crearTablaVentas(sqlite3 *db);
-int registrarVenta(sqlite3 *db,int id_usuario, int id_vehiculo, int precio_final);
+int registrarVenta(sqlite3 *db, int id_usuario, int id_vehiculo, float precio_final);
 int crearTablaVehiculos(sqlite3 *db);
 int crearTablaCitas(sqlite3 *db);
 
@@ -41,6 +41,7 @@ int insertarNotificacion(sqlite3 *db, int id_usuario, const char *mensaje);
 
 void eliminarTodasLasNotificaciones(sqlite3 *db, int id_usuario, SOCKET cliente_fd);
 void eliminarNotificacionPorID(sqlite3 *db, int id_usuario, int id_notificacion, SOCKET cliente_fd);
+
 
 
 #endif
